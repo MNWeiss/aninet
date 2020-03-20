@@ -1,0 +1,23 @@
+Package: aninet
+Title: Statistical Models for Animal Social Networks
+Version: 0.0.0.9000
+Imports:
+  asnipe,
+  VGAM,
+  betareg,
+  MASS,
+  stats,
+  utils
+Authors@R: 
+    person(given = "Michael",
+           family = "Weiss",
+           role = c("aut", "cre"),
+           email = "m.weiss@exeter.ac.uk")
+Description: An implementation of several statistical models for the analysis of animal social network data.
+    Included is an implementation of generalized affiliation indices, calculation of social differentiation, and
+    estimation of association complexity. Also includes the generalized linear model quadratic assignment procedure.
+    Several convenience functions for manipulating social network data are also included.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.0
