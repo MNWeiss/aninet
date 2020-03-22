@@ -13,13 +13,13 @@ social_differentiation(
 )
 }
 \arguments{
-\item{Num}{Numeric, numerator of the association indices}
+\item{Num}{Numeric vector, numerator of the association indices}
 
-\item{Den}{Numeric, denominator of association indices}
+\item{Den}{Numeric vector, denominator of association indices}
 
 \item{method}{Character, indicating what likelihood function to use}
 
-\item{res}{Resolution used for integration}
+\item{res}{Resolution used for integration (only used for \code{method = "Whitehead"})}
 
 \item{initial.params}{Initial parameters for model fitting}
 }
@@ -31,8 +31,8 @@ Estimates the coefficient of variation of the underlying association probabiliti
 }
 \details{
 Social differentiation is commonly defined as the coefficient of variation of the true, underlying association probabilities. This estimation procedure assumes that the underlying probabilities follow a beta distribution, and estimates the parameters of this distribution given the observed association indices.
-The estimation of social differeniation serves as both a useful descriptor of social structure, and a useful measure for determining the power and precision of social analyses. The estimated correlation between true and observed association indices can be derived by dividing the estimated social differentiation by the observed CV of association indices.
+The estimation of social differeniation serves as both a helpful descriptor of social structure, and a useful measure for determining the power and precision of social analyses. The estimated correlation between true and observed association indices can be derived by dividing the estimated social differentiation by the observed CV of association indices.
 This function can perform estimation in two ways. The first is using the likelihood function given by Whitehead (2009), using \code{method = "Whitehead"}. The second uses the probability mass function of the beta-binomial distribution using \code{method = "Beta-binomial"}.
-Because it requires numeric integration, the \code{"Whitehead"} method is much slower than the \code{"Beta-binomial"} method, however has the upside of being directly comparable to results from SOCPROG.
+Because it requires numeric integration, the \code{"Whitehead"} method is much slower than the \code{"Beta-binomial"} method, however has the upside of being directly comparable to results from SOCPROG (and thus the vast majority of values reported in the literature).
 Data should be numeric vectors of numerators and denominators, rather than square matrices. See \code{get_numerator()} and \code{get_denominator()} for easy ways to extract these from raw data.
 }

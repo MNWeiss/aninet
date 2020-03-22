@@ -1,0 +1,30 @@
+#' Hierarchical clustering of association indices using modularity
+#'
+#' An implementation of the network clustering method described by Lusseau (2007) and implemented in SOCPROG.
+#'
+#' @param network A symmetric square matrix of association indices
+#' @param method The linkage method for hierarchical clustering
+#'
+#' @details This method works by transforming the association indices into distances (by subtracting them from 1), running hierarchical clustering as usual, and then calculating the modularity of the division at each split.
+#' This method is currently only designed to be used with association-like indices (which have a maximum of 1).
+#'
+#' @return A named list containing the best modularity ("maximum_modularity"), the cophenetic clustering coefficient ("CCC"), the clustering tree ("tree"), a dataframe of cut heights and modularity ("cuts"), and merge information ("merge").
+#' See \code{hclust} for details on manipulating and plotting trees.
+association_hclust <- function(network, method = "average"){
+  graph = graph.adjacency(m, mode = "undirected", weighted = T)
+  m.dist = as.dist(1 - m)
+  clustering = hclust(m.dist, method = method)
+  cp = cophenetic(clustering)
+  ccc = cor(cp, m.dist)
+  cuts = clustering$height
+  cuts = unique(cuts)
+  modularity = rep(NA, length(cuts))
+  for(i in 1:length(cuts)){
+    membership = cutree(clustering, h = cuts[i])
+    modularity[i] = modularity(graph, membership = membership, weights = E(graph)$weight)
+  }
+  maximum_modularity = max(modularity)
+  best_clusters = cutree(clustering, h = cuts[which(modularity == maximum_modularity)])
+  height = 1 - cuts
+  list(modularity = maximum_modularity, CCC = ccc, membership = best_clusters, tree = clustering, cuts = data.frame(AI = height, Mod = modularity), merge = clustering$merge)
+}
