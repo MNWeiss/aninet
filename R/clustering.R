@@ -12,20 +12,20 @@
 #' See \code{hclust} for details on manipulating and plotting trees.
 #' @export
 association_hclust <- function(network, method = "average"){
-  graph = graph.adjacency(m, mode = "undirected", weighted = T)
-  m.dist = as.dist(1 - m)
-  clustering = hclust(m.dist, method = method)
-  cp = cophenetic(clustering)
-  ccc = cor(cp, m.dist)
+  graph = igraph::graph.adjacency(m, mode = "undirected", weighted = T)
+  m.dist = stats::as.dist(1 - m)
+  clustering = stats::hclust(m.dist, method = method)
+  cp = stats::cophenetic(clustering)
+  ccc = stats::cor(cp, m.dist)
   cuts = clustering$height
   cuts = unique(cuts)
   modularity = rep(NA, length(cuts))
   for(i in 1:length(cuts)){
-    membership = cutree(clustering, h = cuts[i])
-    modularity[i] = modularity(graph, membership = membership, weights = E(graph)$weight)
+    membership = stats::cutree(clustering, h = cuts[i])
+    modularity[i] = igraph::modularity(graph, membership = membership, weights = E(graph)$weight)
   }
   maximum_modularity = max(modularity)
-  best_clusters = cutree(clustering, h = cuts[which(modularity == maximum_modularity)])
+  best_clusters = stats::cutree(clustering, h = cuts[which(modularity == maximum_modularity)])
   height = 1 - cuts
   list(modularity = maximum_modularity, CCC = ccc, membership = best_clusters, tree = clustering, cuts = data.frame(AI = height, Mod = modularity), merge = clustering$merge)
 }
