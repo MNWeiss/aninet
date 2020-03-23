@@ -19,7 +19,7 @@
 #'
 #' In most cases, the model is fit using \code{glm()}. However, if \code{family = "betar"}, the \code{betareg::betareg()} function is used, and if \code{family = "negbin"}, the \code{MASS::glm.nb()} function is used.
 #'
-#' Beta models will be most useful for association index type data without an integer numerator/denominator (such as measurements of portion time together from biologgers/video). Dyadic sampling effort can still be specified as the sampling weights, but take care.
+#' Beta models will be most useful for association index type data without an integer numerator/denominator (such as measurements of portion time together from biologgers/video). Dyadic sampling effort can still be specified as the weights, but take care.
 #' In \code{betareg()}, weights are treated as sampling, rather than proportional, weights. This means that the function assumes your true sample size is \code{sum(weights)}. While this won't effect your estimate or significance (because we use permutations), it will give
 #' pretty strange results for the standard errors. A solution is to transform your weights such that \code{sum(weights) = length(weights)}.
 #'
@@ -46,6 +46,8 @@ glmqap <- function(formula, family = "gaussian", weights=NULL, offset=NULL, nper
 
   names(predictors) <- x_names
 
+  if(length(x_names) == 1) permutation <- "Y"
+
   y <- response[lower.tri(response)] #vectorized response
   x <- do.call(cbind,lapply(predictors,function(z)z[lower.tri(z)])) #matrix of predictors
 
@@ -66,14 +68,20 @@ glmqap <- function(formula, family = "gaussian", weights=NULL, offset=NULL, nper
   if(family != "betar" & family != "negbin"){ #if a built-in GLM family is specified
     mod.orig <- stats::glm(y ~ x, weights = w, offset = o, family = family) #fit the GLM
     z.val <- summary(mod.orig)$coefficients[-1,3] #pull out predictor z values
+    coef <- mod.orig$coefficients
+    se <- summary(mod.orig)$coefficients[,2]
   }
   if(family == "betar"){ #if beta regression is specified
     mod.orig <- betareg::betareg(y ~ x, weights = w) #fit model
     z.val <- summary(mod.orig)$coefficients$mean[-1,3] #pull out z values
+    coef <- mod.orig$coefficients$mean
+    se <- summary(mod.orig)$coefficients$mean[,2]
   }
   if(family == "negbin"){ #same for negative binomial regression
     mod.orig <- MASS::glm.nb(y ~ x + offset(o), weights = w)
     z.val <- summary(mod.orig)$coefficients[-1,3]
+    coef <- mod.orig$coefficients
+    se <- summary(mod.orig)$coefficients[,2]
   }
 
   summ <- summary(mod.orig)
@@ -219,10 +227,10 @@ glmqap <- function(formula, family = "gaussian", weights=NULL, offset=NULL, nper
     family = family,
     permutation = permutation,
     nperm = nperm,
-    coefficients = ifelse(family == "betar", mod.orig$coefficients$mean[-1], mod.orig$coefficients[-1]),
-    stderr = ifelse(family == "betar", summary(mod.orig)$coefficients$mean[-1,2], summary(mod.orig)$coefficients[-1,2]),
-    z = z.val,
-    p = pval,
+    coefficients = coef,
+    stderr = se,
+    z = c(NA,z.val),
+    p = c(NA,pval),
     permuted_z = z.perm,
     aic = AIC(mod.orig),
     bic = BIC(mod.orig),
@@ -265,7 +273,7 @@ print.glmqap <- function(x){
   cat("Coefficients:\n")
   results_mat <- cbind(x$coefficients, x$stderr, x$z, x$p)
   colnames(results_mat) <- c("Estimate", "Std. Error", "Z", "P(two-tailed)")
-  row.names(results_mat) <- x$pred_names
+  row.names(results_mat) <- c("Intercept",x$pred_names)
   print.table(results_mat)
   cat("\n")
   cat("log-likelihood:", x$loglik, "\t")

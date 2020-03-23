@@ -43,7 +43,7 @@ The \code{offset} argument gives a matrix with a known coefficient of 1 in the m
 
 In most cases, the model is fit using \code{glm()}. However, if \code{family = "betar"}, the \code{betareg::betareg()} function is used, and if \code{family = "negbin"}, the \code{MASS::glm.nb()} function is used.
 
-Beta models will be most useful for association index type data without an integer numerator/denominator (such as measurements of portion time together from biologgers/video). Dyadic sampling effort can still be specified as the sampling weights, but take care.
+Beta models will be most useful for association index type data without an integer numerator/denominator (such as measurements of portion time together from biologgers/video). Dyadic sampling effort can still be specified as the weights, but take care.
 In \code{betareg()}, weights are treated as sampling, rather than proportional, weights. This means that the function assumes your true sample size is \code{sum(weights)}. While this won't effect your estimate or significance (because we use permutations), it will give
 pretty strange results for the standard errors. A solution is to transform your weights such that \code{sum(weights) = length(weights)}.
 

@@ -22,3 +22,6 @@ For many functions, the numerator of association indices is needed, rather than 
 \details{
 The association index does not need to be specified, as they almost all use the same numerator. Data format can be either \code{"SP"} or \code{"GBI"}, the two main data formats used by \code{"asnipe"}.
 }
+\examples{
+get_numerator(srkw_sightings,data_format = "GBI", retunr = "vector")
+}
