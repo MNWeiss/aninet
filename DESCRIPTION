@@ -15,8 +15,7 @@ Authors@R:
            role = c("aut", "cre"),
            email = "m.weiss@exeter.ac.uk")
 Description: An implementation of several statistical models for the analysis of animal social network data.
-    Included is an implementation of generalized affiliation indices, calculation of social differentiation, and
-    estimation of association complexity. Also includes the generalized linear model quadratic assignment procedure.
+    Included is an implementation of generalized affiliation indices and estimation of social differentiation. Also includes the generalized linear model quadratic assignment procedure.
     Several convenience functions for manipulating social network data are also included.
 License: GPL-3
 Encoding: UTF-8
