@@ -13,9 +13,9 @@
 #' This function can perform estimation in two ways. The first is using the likelihood function given by Whitehead (2009), using \code{method = "Whitehead"}. The second uses the probability mass function of the beta-binomial distribution using \code{method = "Beta-binomial"}.
 #' Because it requires numeric integration, the \code{"Whitehead"} method is much slower than the \code{"Beta-binomial"} method, however has the upside of being directly comparable to results from SOCPROG (and thus the vast majority of values reported in the literature).
 #' Data should be numeric vectors of numerators and denominators, rather than square matrices. See \code{get_numerator()} and \code{get_denominator()} for easy ways to extract these from raw data.
-#' This function calculates and returns the standard error and 95% confidence interval for the estimated social differentiation and correlation. This is based on the inverse Hessian matrix from the optimization routine. Note that a bootstrap of the raw data may be more robust.
+#' This function calculates and returns the standard error and confidence interval for the estimated social differentiation and correlation. This is based on the inverse Hessian matrix from the optimization routine. Note that a bootstrap of the raw data may be more robust.
 #'
-#' @return A matrix containing the estimated social differentiation, the CV of the observed associations, and the estimated correlation between true and observed association indices, along with standard errors and 95% confidence intervals.
+#' @return A matrix containing the estimated social differentiation, the CV of the observed associations, and the estimated correlation between true and observed association indices, along with standard errors and confidence intervals.
 #'
 #' @examples
 #' X <- get_numerator(srkw_sightings, return = "vector", data_format = "GBI")
