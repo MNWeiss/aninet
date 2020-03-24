@@ -27,7 +27,7 @@ glmqap(
 \item{permutation}{Character specifying what form of permutation to carry out. One of \code{"DSP"}, \code{"Y"}, or \code{"X"}.}
 }
 \value{
-An object of class \code{glmqap}, containing a summary of the fitted model. The coefficients table now contains p-values from the randomizations. In addition to all information normally in the respective model summary objects, the object contains an element called \code{perm.stats}, which is a matrix containing the permuted value of each pivotal statistic for all permutations.
+An object of class \code{glmqap}, containing a summary of the fitted model. The coefficients table now contains p-values from the randomizations. In addition to all information normally in the respective model summary objects, the object contains an element called \code{permuted_z}, which is a matrix containing the permuted value of each pivotal statistic for all permutations.
 }
 \description{
 This function fits a generalised linear model of the given family
@@ -35,10 +35,11 @@ and assesses the significance of the estimated coefficients using a quadratic as
 Multiple types of permutation are provided, with the default being the double semi-partialling method.
 }
 \details{
-MRQAP is the canonical method for dyadic regression in social networks. However, this method comes with two major assumptions: The residuals of the response are approximately normal, and all dyads are measured with the same precision.
-These assumptions are almost never met in animal social network analyses. Replacing the ordinary least-squares fit used in MRQAP but replacing it with a GLM allows us to address both of these issues.
+The multiple regression quadratic assignment procedure (MRQAP) is the canonical method for dyadic regression in social networks. However, this method comes with two major assumptions: The residuals of the response are approximately normal, and all dyads are measured with the same precision.
+These assumptions are almost never met in animal social network analyses. Replacing the ordinary least-squares fit used in MRQAP with a GLM allows us to address both of these issues in a theoretically sound way, by specifying error families, offsets, and weights.
 
 The \code{weights} argument allows for specification of sampling weights per dyad. For binomial models (appropriate for association indices), these weights should be the dyadic denominator of the association index.
+
 The \code{offset} argument gives a matrix with a known coefficient of 1 in the model. This will primarily be useful for interaction rates. Here, we can use an unbounded count model (by setting \code{family} to be one of \code{"poisson"}, \code{"quasipoisson"}, or \code{"negbin"}), and include the logarithm of dyadic sampling effort as an offset. This means we're using sampling effort as an exposure term, and therefore modelling interaction rates rather than just counts.
 
 In most cases, the model is fit using \code{glm()}. However, if \code{family = "betar"}, the \code{betareg::betareg()} function is used, and if \code{family = "negbin"}, the \code{MASS::glm.nb()} function is used.
@@ -48,6 +49,19 @@ In \code{betareg()}, weights are treated as sampling, rather than proportional, 
 pretty strange results for the standard errors. A solution is to transform your weights such that \code{sum(weights) = length(weights)}.
 
 The function allows multiple types of permutation. The \code{"DSP"} method is the most robust, and is based on the method proposed by Dekker et al. (2007). This explicitly tests the effect of each covariate, controlling for the effect of others and the relationship between variables.
-The \code{"Y"} permutation method permutes the response matrix, and tests the null hypothesis that the response is unrelated to any of the responses.
+The \code{"Y"} permutation method permutes the response matrix, and tests the null hypothesis that the response is unrelated to any of the predictors.
 The \code{"X"} method permutes each predictor matrix, testing the null hypothesis of no relationship, but importantly does not control for any covariance among predictors.
+Note that if your formula contains only a single predictor, the function will default to \code{permutation = "Y"}.
+}
+\examples{
+sri_network <- asnipe::get_network(srkw_sightings) #get the SRI network (via asnipe)
+sri_denominator <- get_denominator(srkw_sightings, data_format = "GBI", return = "matrix") #get the denominators
+same_sex <- attribute_similarity(srkw_attributes$sex) #sex similarity
+
+#run model for associations
+glmqap(sri_network ~ same_sex + srkw_kinship, weights = sri_denominator, family = "binomial")
+
+#run model for interaction rates
+glmqap(srkw_contact ~ same_sex + srkw_kinship, offset = log(srkw_sampling), family = "poisson")
+
 }
