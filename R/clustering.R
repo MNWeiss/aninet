@@ -12,6 +12,7 @@
 #' See \code{hclust} for details on manipulating and plotting trees.
 #' @export
 association_hclust <- function(network, method = "average"){
+  m <- network
   graph = igraph::graph.adjacency(m, mode = "undirected", weighted = T)
   m.dist = stats::as.dist(1 - m)
   clustering = stats::hclust(m.dist, method = method)
