@@ -57,12 +57,34 @@ glmqap <- function(formula, family = "gaussian", weights=NULL, offset=NULL, nper
     predictors[[i]] <- as.matrix(formula[[x_names[i]]])
   }
 
+  if(!all(unlist(lapply(predictors, function(z) nrow(z) == ncol(z) )))){
+    stop("Predictors must be square matrices")
+  }
+  if(nrow(response) != ncol(response)){
+    stop("Response must be a square matrix")
+  }
+
+  if(!all(unlist(lapply(predictors, function(z) nrow(z) == nrow(response) )))){
+    stop("Predictors and response must be of the same dimensions")
+  }
+
+  if(family == "binomial" & any(!is.integer(response)) & is.null(weights)){
+    stop("Provide denominators as weights for binomial model")
+  }
+
+  if((!is.null(weights) & !is.matrix(weights)) | (!is.null(weights) & nrow(weights) != ncol(weights)) | (!is.null(weights) & nrow(weights) != nrow(response))){
+    stop("Weights must be a square matrix with same dimensions as response")
+  }
+  if((!is.null(offset) & !is.matrix(offset)) | (!is.null(offset) & nrow(offset) != ncol(offset)) | (!is.null(offset) & nrow(offset) != nrow(response))){
+    stop("Offset must be a square matrix with same dimensions as response")
+  }
+
   names(predictors) <- x_names
 
   if(length(x_names) == 1) permutation <- "Y"
 
   y <- response[lower.tri(response)] #vectorized response
-  x <- do.call(cbind,lapply(predictors,function(z)z[lower.tri(z)])) #matrix of predictors
+  x <- do.call(cbind,lapply(predictors, function(z) z[lower.tri(z)])) #matrix of predictors
 
   if(is.null(weights)){ #if no weights are specified
     w <- NULL #w is null
@@ -76,7 +98,7 @@ glmqap <- function(formula, family = "gaussian", weights=NULL, offset=NULL, nper
     o <- offset[lower.tri(offset)]
   }
 
-  print("Fitting Model")
+  message("Fitting Model")
 
   if(family != "betar" & family != "negbin"){ #if a built-in GLM family is specified
     mod.orig <- stats::glm(y ~ x, weights = w, offset = o, family = family) #fit the GLM
@@ -103,7 +125,7 @@ glmqap <- function(formula, family = "gaussian", weights=NULL, offset=NULL, nper
 
   z.perm <- matrix(nrow = nperm, ncol = length(z.val)) #matrix to hold permuted z values
 
-  print("Performing Permutations")
+  message("Performing Permutations")
 
   if(permutation == "DSP"){
 
