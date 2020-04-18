@@ -72,11 +72,15 @@ glmqap <- function(formula, family = "gaussian", weights=NULL, offset=NULL, nper
     stop("Provide denominators as weights for binomial model")
   }
 
-  if((!is.null(weights) & !is.matrix(weights)) | (!is.null(weights) & nrow(weights) != ncol(weights)) | (!is.null(weights) & nrow(weights) != nrow(response))){
-    stop("Weights must be a square matrix with same dimensions as response")
+  if(!is.null(weights)){
+    if(!is.matrix(weights) | nrow(weights) != ncol(weights) | nrow(weights) != nrow(response)){
+      stop("Weights must be a square matrix with same dimensions as response")
+    }
   }
-  if((!is.null(offset) & !is.matrix(offset)) | (!is.null(offset) & nrow(offset) != ncol(offset)) | (!is.null(offset) & nrow(offset) != nrow(response))){
-    stop("Offset must be a square matrix with same dimensions as response")
+  if(!is.null(offset)){
+    if(!is.matrix(offset) | nrow(offset) != ncol(offset) | nrow(offset) != nrow(response)){
+      stop("Offsets must be a square matrix with same dimensions as response")
+    }
   }
 
   names(predictors) <- x_names
