@@ -16,7 +16,7 @@
 #'
 #' The \code{weights} argument allows for specification of sampling weights per dyad. For binomial models (appropriate for association indices), these weights should be the dyadic denominator of the association index.
 #'
-#' The \code{offset} argument gives a matrix with a known coefficient of 1 in the model. This will primarily be useful for interaction rates. Here, we can use an unbounded count model (by setting \code{family} to be one of \code{"poisson"}, \code{"quasipoisson"}, or \code{"negbin"}), and include the logarithm of dyadic sampling effort as an offset. This means we're using sampling effort as an exposure term, and therefore modelling interaction rates rather than just counts.
+#' The \code{offset} argument gives a matrix with a known coefficient of 1 in the model. This will primarily be useful for interaction rates. Here, we can use a count model without an upper bound (by setting \code{family} to be one of \code{"poisson"}, \code{"quasipoisson"}, or \code{"negbin"}), and include the logarithm of dyadic sampling effort as an offset. This means we're using sampling effort as an exposure term, and therefore modelling interaction rates rather than just counts.
 #'
 #' In most cases, the model is fit using \code{glm()}. However, if \code{family = "betar"}, the \code{betareg::betareg()} function is used, and if \code{family = "negbin"}, the \code{MASS::glm.nb()} function is used.
 #'
