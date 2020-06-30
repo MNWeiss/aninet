@@ -14,13 +14,13 @@ glmqap(
 )
 }
 \arguments{
-\item{formula}{A glm style formula describing the model to be fit}
+\item{formula}{A \code{glm} style formula describing the model to be fit. All elements of this formula should be square matrices of the same dimension.}
 
 \item{family}{Either a \code{glm()} family or one of \code{"betar"} or \code{"negbin"}. See Details.}
 
-\item{weights}{Weights matrix used for fitting, see Details.}
+\item{weights}{Square matrix of weights used for fitting, see Details.}
 
-\item{offset}{Offset matrix for fitting, see Details.}
+\item{offset}{Square matrix of offsets for fitting, see Details.}
 
 \item{nperm}{Numeric, number of permutations to perform.}
 
@@ -35,12 +35,12 @@ and assesses the significance of the estimated coefficients using a quadratic as
 Multiple types of permutation are provided, with the default being the double semi-partialling method.
 }
 \details{
-The multiple regression quadratic assignment procedure (MRQAP) is the canonical method for dyadic regression in social networks. However, this method comes with two major assumptions: The residuals of the response are approximately normal, and all dyads are measured with the same precision.
+The multiple regression quadratic assignment procedure (MRQAP) is the canonical method for dyadic regression in social networks. However, this method comes with two major assumptions: The residuals of the response are approximately normal (although the DSP method is fairly robust to violations of this assumption), and the social relationships of all dyads are measured with the same precision.
 These assumptions are almost never met in animal social network analyses. Replacing the ordinary least-squares fit used in MRQAP with a GLM allows us to address both of these issues in a theoretically sound way, by specifying error families, offsets, and weights.
 
 The \code{weights} argument allows for specification of sampling weights per dyad. For binomial models (appropriate for association indices), these weights should be the dyadic denominator of the association index.
 
-The \code{offset} argument gives a matrix with a known coefficient of 1 in the model. This will primarily be useful for interaction rates. Here, we can use an unbounded count model (by setting \code{family} to be one of \code{"poisson"}, \code{"quasipoisson"}, or \code{"negbin"}), and include the logarithm of dyadic sampling effort as an offset. This means we're using sampling effort as an exposure term, and therefore modelling interaction rates rather than just counts.
+The \code{offset} argument gives a matrix with a known coefficient of 1 in the model. This will primarily be useful for interaction rates. Here, we can use a count model without an upper bound (by setting \code{family} to be one of \code{"poisson"}, \code{"quasipoisson"}, or \code{"negbin"}), and include the logarithm of dyadic sampling effort as an offset. This means we're using sampling effort as an exposure term, and therefore modelling interaction rates rather than just counts.
 
 In most cases, the model is fit using \code{glm()}. However, if \code{family = "betar"}, the \code{betareg::betareg()} function is used, and if \code{family = "negbin"}, the \code{MASS::glm.nb()} function is used.
 
@@ -48,7 +48,7 @@ Beta models will be most useful for association index type data without an integ
 In \code{betareg()}, weights are treated as sampling, rather than proportional, weights. This means that the function assumes your true sample size is \code{sum(weights)}. While this won't effect your estimate or significance (because we use permutations), it will give
 pretty strange results for the standard errors. A solution is to transform your weights such that \code{sum(weights) = length(weights)}.
 
-The function allows multiple types of permutation. The \code{"DSP"} method is the most robust, and is based on the method proposed by Dekker et al. (2007). This explicitly tests the effect of each covariate, controlling for the effect of others and the relationship between variables.
+The function allows multiple types of permutation. The \code{"DSP"} method is the most robust for testing multiple predictors, and is based on the method proposed by Dekker et al. (2007). This explicitly tests the effect of each covariate, controlling for the effect of others and the relationship between variables.
 The \code{"Y"} permutation method permutes the response matrix, and tests the null hypothesis that the response is unrelated to any of the predictors.
 The \code{"X"} method permutes each predictor matrix, testing the null hypothesis of no relationship, but importantly does not control for any covariance among predictors.
 Note that if your formula contains only a single predictor, the function will default to \code{permutation = "Y"}.

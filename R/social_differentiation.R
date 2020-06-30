@@ -60,14 +60,21 @@ social_differentiation <- function(Num, Den, method = c("Whitehead","Beta-binomi
   if(method == "Beta-binomial"){
     result <- stats::optim(initial.params, fn = LL.betabinom, X = X, D = D, hessian = T) #MLE for all AIs
   }
+  #transform parameters
   a <- exp(result$par[1])
   b <- exp(result$par[2])
+  #calculate mean and standard deviation
   mean.fit <- a/(a+b)
   sd.fit <- sqrt((a*b)/((a+b)^2*(a+b+1)))
+  #estimate of social differentiation
   estimate <- sd.fit/mean.fit
+  #observed CV
   observed <- stats::sd(X/D)/mean(X/D)
+  #estimated correlation
   correlation <- estimate/observed
+  #sample parameters based on estimates and hessian matrix
   samp <- MASS::mvrnorm(n = 100000, mu = result$par, Sigma = solve(result$hessian))
+  #distribution of CVs
   cv.samp <- apply(samp,1,function(z){
       a <- exp(z[1])
       b <- exp(z[2])
@@ -75,10 +82,13 @@ social_differentiation <- function(Num, Den, method = c("Whitehead","Beta-binomi
       sd.fit = sqrt((a*b)/((a+b)^2*(a+b+1)))
       sd.fit/mean.fit
   })
+  #get SEs and CIs
   se_S <- sd(cv.samp, na.rm = T)
   se_r <- sd(cv.samp/observed, na.rm = T)
   ci_S <- quantile(cv.samp, c(0.025,0.975), na.rm = T)
   ci_r <- quantile(cv.samp/observed, c(0.025,0.975), na.rm = T)
+
+  #make summary table
   summary <- matrix(nrow = 3, ncol = 4)
   row.names(summary) <- c("Observed CV","Social Differentiation", "Correlation")
   colnames(summary) <- c("Estimate", "SE", "Lower CI", "Upper CI")
