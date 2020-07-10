@@ -1,6 +1,6 @@
 #' Generalised Affiliation Indices
 #'
-#' Caluclates a social network based on generalised affiliation indices (GAI). When non-social factors influence the observed interactions or associations, using GAIs can help to remove the effect of these factors, revealing underlying social affinities. This is done by fitting a generalised linear model, with the observed network as a response and non-social confounds as predictors, and using the residuals of these numbers.
+#' Caluclates a social network based on generalised affiliation indices (GAI). When non-social factors influence the observed interactions or associations, using GAIs can help to remove the effect of these factors, revealing underlying social affinities. This is done by fitting a generalised linear model, with the observed network as a response and non-social confounds as predictors, and using the residuals as a measure of affiliation.
 #'
 #' @param formula A glm style formula giving the response and predictor matrices.
 #' @param family Error family for fitting, either a \code{glm} family or one of \code{"betar"} or \code{"negbin"}.
