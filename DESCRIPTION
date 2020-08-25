@@ -9,7 +9,10 @@ Imports:
   MASS,
   stats,
   utils,
-  igraph
+  igraph,
+  rjags,
+  runjags,
+  MCMCpack
 Authors@R: 
     person(given = "Michael",
            family = "Weiss",
