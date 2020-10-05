@@ -27,7 +27,7 @@ gai(
 A square matrix containing the generalised affiliation indices.
 }
 \description{
-Caluclates a social network based on generalised affiliation indices (GAI). When non-social factors influence the observed interactions or associations, using GAIs can help to remove the effect of these factors, revealing underlying social affinities. This is done by fitting a generalised linear model, with the observed network as a response and non-social confounds as predictors, and using the residuals of these numbers.
+Caluclates a social network based on generalised affiliation indices (GAI). When non-social factors influence the observed interactions or associations, using GAIs can help to remove the effect of these factors, revealing underlying social affinities. This is done by fitting a generalised linear model, with the observed network as a response and non-social confounds as predictors, and using the residuals as a measure of affiliation.
 }
 \details{
 For association data, \code{family = "binomial"} is the most appropriate. In this case, the observed association indices should be the response matrix, and the dyadic denominators should be passed to the \code{weights} argument.

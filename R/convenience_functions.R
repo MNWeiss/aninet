@@ -15,12 +15,10 @@ get_numerator <- function(data, data_format = "SP", return = "vector"){
     X = both.seen
   }
   if(data_format == "GBI"){
-    X = matrix(nrow = ncol(data), ncol = ncol(data))
-    for(i in 1:nrow(X)){
-      for(j in 1:nrow(X)){
-        X[i,j] = sum(data[,i]==1 & data[,j]==1)
-      }
-    }
+    X = apply(gbi,2,function(z){
+      z %*% gbi
+    })
+    diag(X) <- 0
   }
   if(return == "vector" | is.null(return)){
     return(X[lower.tri(X)])
@@ -46,26 +44,13 @@ get_numerator <- function(data, data_format = "SP", return = "vector"){
 #' @return Either a vector of denominators (if \code{return = "vector"}) or a square matrix of denominators (if \code{return = "matrix"}).
 #' @export
 get_denominator <- function(data, index = "SRI", data_format = "SP", return = "vector"){
-  denominator = matrix(nrow = dim(data)[2], ncol = dim(data)[2])
   if(!index %in% c("SRI", "HWI", "BII")) stop("Invalid Association Index")
   if(index == "BII" & data_format == "GBI") stop("BII not valid without sampling periods")
   if(data_format == "SP"){
-    for(i in 1:nrow(denominator)){
-      for(k in 1:nrow(denominator)){
-        if(i > k){
-          data.i = ifelse(rowSums(data[,i,]) > 0, 1, 0)
-          data.k = ifelse(rowSums(data[,k,]) > 0, 1, 0)
-          data.ik = data[,i,k]
-          x = sum(data.ik)
-          ya = sum(data.k == 0 & data.i == 1) #counts of only a
-          yb = sum(data.i == 0 & data.k == 1) #counts of only b
-          yab = sum(data.i == 1 & data.k == 1 & data.ik == 0) #both present, not seen together
-          if(index == "HWI") denominator[i,k] = yab + 0.5 * (ya + yb) + x #HWI denominator
-          if(index == "SRI") denominator[i,k] = yab + ya + yb + x #SRI denominator
-          if(index == "BII") denominator[i,k] = yab + x #"both identified" association index
-        }
-      }
-    }
+    occur <- ifelse(apply(sp,c(1,2),sum) > 0, 1, 0)
+    if(index == "BII") denominator <- apply(occur, 2, function(z) z%*%occur )
+    if(index == "SRI") denominator <- apply(occur, 2, function(z) nrow(occur) - (1-z) %*% (1-occur) )
+    if(index == "HWI")
   }
   if(data_format =="GBI"){
     for(i in 1:nrow(denominator)){

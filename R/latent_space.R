@@ -8,7 +8,7 @@
 #' @param ind.RE Logigal, indicating whether to include an individual sociality random effect.
 #' @param effort A square matrix indicating dyadic sampling effort. See details.
 #' @param beta.prior Numeric vector, prior for fixed effects. Should be the mean and precision of a normal distribution.
-#' @param vcv.prior Numeric matrix, prior for the fixed effects. Should be a matrix with row and column number equal to the dimensions, representing a parameterization of the Wishart distribution.
+#' @param vcv.prior Numeric matrix, prior for the variance-covariance matrix of latent positions. Should be a matrix with row and column number equal to the dimensions, representing a parameterization of the Wishart distribution.
 #' @param re.prior Numeric vector, prior for individual random effect. Should be the parameters of a Gamma distribution.
 #' @param z0 Optional numeric matrix, initial positions of nodes in the latent space.
 #' @param ... Further arguments to be passed to runjags.

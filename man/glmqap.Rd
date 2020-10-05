@@ -14,7 +14,7 @@ glmqap(
 )
 }
 \arguments{
-\item{formula}{A \code{glm} style formula describing the model to be fit. All elements of this formula should be square matrices of the same dimension.}
+\item{formula}{A \code{glm} style formula describing the model to be fit. All elements of this formula should be square matrices of the same size.}
 
 \item{family}{Either a \code{glm()} family or one of \code{"betar"} or \code{"negbin"}. See Details.}
 
