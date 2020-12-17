@@ -11,7 +11,7 @@ latent_space(
   ind.RE = T,
   effort,
   beta.prior = c(0, 1e-04),
-  vcv.prior = diag(x = 1, nrow = 2),
+  vcv.prior = NULL,
   re.prior = c(0.1, 0.1),
   z0 = NULL,
   ...
@@ -30,24 +30,36 @@ latent_space(
 
 \item{beta.prior}{Numeric vector, prior for fixed effects. Should be the mean and precision of a normal distribution.}
 
-\item{vcv.prior}{Numeric matrix, prior for the fixed effects. Should be a matrix with row and column number equal to the dimensions, representing a parameterization of the Wishart distribution.}
+\item{vcv.prior}{Numeric matrix, prior for the variance-covariance matrix of latent positions. Should be a matrix with row and column number equal to the dimensions, representing a parameterization of the Wishart distribution.}
 
 \item{re.prior}{Numeric vector, prior for individual random effect. Should be the parameters of a Gamma distribution.}
 
-\item{z0}{Optional numeric matrix, initial positions of nodes in the latent space.}
+\item{z0}{Optional numeric matrix, initial positions of nodes in the latent space. If not provided, initial values are generated using mutlidimensional scaling.}
 
 \item{...}{Further arguments to be passed to runjags.}
 }
 \value{
-A list containing the runjags model, matrix of estimated distances, estimated positions, and model summary.
+A named list containing the following slots
 }
 \description{
 Fits a D dimensional latent space model of the given family to a matrix of associations or interactions
 }
 \details{
 Social networks often exhibit transitivity, where a connection between B and C is likely to be stronger if B and C have strong connections to a third individual A. This tendency is often referred to as "triadic closure."
-One way to account for this in regression settings is to view nodes as being placed within a D dimensional latent space, with edges partially determined by the euclidean distances between them. As euclidean distances are transitive, this modelling framework inherently includes transitivity.
+One way to account for this in regression settings is to view nodes as being placed within a D dimensional latent space, with edges partially determined by the euclidean distances between nodes.
 This function fits one of these latent space models to a matrix of associations or interactions. For interactions, a Poisson model should be fit, with effort indicating the sampling time per dyad. For associations, a binomial model should be fit, with effort being indicated by the denominator of the association index.
 In both cases, the response matrix should be a matrix of integers, indicating the number of dyadic interactions or associations.
 This function fits the model using Gibbs sampling via JAGS and runjags, and allows the user to define priors for fixed effects, the covariance matrix of the latent positions, and individual random effects (if included).
 }
+\section{Slots}{
+
+\describe{
+\item{\code{summary}}{The summary statistics for the fixed effects and variance of the random effects (if included).}
+
+\item{\code{distances}}{The sampled distances between nodes in social space, stored as a S x N x N array, where S is the number of MCMC samples.}
+
+\item{\code{z}}{The sampled positions of nodes in social space, stored as a S x N x D array, where S is the number of MCMC samples and D is the number of latent dimensions.}
+
+\item{\code{jags_model}}{The full runjags object, which can be used to assess convergence through trace plots and diagnostics, and to get the DIC value of the model.}
+}}
+

@@ -17,12 +17,13 @@
 
 dyadic_csi <- function(networks){
 
+
+  classes <- unlist(lapply(networks, class))
+  if(any(!classes %in% c("matrix","array"))) stop("Networks must me matrices")
   nrows <- unlist(lapply(networks, nrow))
   ncols <- unlist(lapply(networks, ncol))
-  classes <- unlist(lapply(networks, class))
   if(length(unique(nrows)) > 1) stop("Networks not of same dimensions!")
   if(any(nrows != ncols)) stop("Networks must be square matrices")
-  if(any(classes != "matrix")) stop("Networks must me matrices")
 
   n <- unique(nrows)
   d <- length(networks)

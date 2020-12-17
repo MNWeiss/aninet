@@ -11,13 +11,10 @@
 #' @export
 get_numerator <- function(data, data_format = "SP", return = "vector"){
   if(data_format == "SP"){
-    both.seen <- apply(data,c(2,3),sum)
-    X = both.seen
+    X <- apply(data,c(2,3),sum)
   }
   if(data_format == "GBI"){
-    X = apply(gbi,2,function(z){
-      z %*% gbi
-    })
+    X <- t(data) %*% data
     diag(X) <- 0
   }
   if(return == "vector" | is.null(return)){
@@ -45,22 +42,25 @@ get_numerator <- function(data, data_format = "SP", return = "vector"){
 #' @export
 get_denominator <- function(data, index = "SRI", data_format = "SP", return = "vector"){
   if(!index %in% c("SRI", "HWI", "BII")) stop("Invalid Association Index")
-  if(index == "BII" & data_format == "GBI") stop("BII not valid without sampling periods")
   if(data_format == "SP"){
-    occur <- ifelse(apply(sp,c(1,2),sum) > 0, 1, 0)
-    if(index == "BII") denominator <- apply(occur, 2, function(z) z%*%occur )
-    if(index == "SRI") denominator <- apply(occur, 2, function(z) nrow(occur) - (1-z) %*% (1-occur) )
-    if(index == "HWI")
+    occur <- ifelse(apply(data,c(1,2),sum) > 0, 1, 0)
+    if(index == "BII") denominator <- t(occur) %*% occur
+    if(index == "SRI") denominator <- nrow(occur) - t(1-occur) %*% (1-occur)
+    if(index == "HWI"){
+      ya <- t(occur) %*% (1-occur)
+      yb <- t(ya)
+      yab <- t(occur) %*% (occur)
+      denominator <- 0.5*(ya+yb) + yab
+    }
   }
   if(data_format =="GBI"){
-    for(i in 1:nrow(denominator)){
-      for(j in 1:ncol(denominator)){
-        x = sum(data[,i]==1 & data[,j]==1)
-        ya = sum(data[,i]==1 & data[,j]==0)
-        yb = sum(data[,i]==0 & data[,j]==1)
-        if(index == "HWI") denominator[i,j] = 0.5*(ya + yb) + x
-        if(index == "SRI") denominator[i,j] = ya+yb+x
-      }
+    if(index == "BII") denominator <- t(data) %*% data
+    if(index == "SRI") denominator <- nrow(data) - t(1-data) %*% (1- data)
+    if(index == "HWI"){
+      ya <- t(data) %*% (1-data)
+      yb <- t(ya)
+      yab <- t(data) %*% data
+      denominator <- 0.5*(ya+yb) + yab
     }
   }
   if(return == "vector" | is.null(return)){
