@@ -12,7 +12,8 @@ Imports:
   igraph,
   rjags,
   runjags,
-  MCMCpack
+  MCMCpack,
+  backbone
 Authors@R: 
     person(given = "Michael",
            family = "Weiss",
