@@ -31,17 +31,6 @@
 #'
 #' @return An object of class \code{glmqap}, containing a summary of the fitted model. The coefficients table now contains p-values from the randomizations. In addition to all information normally in the respective model summary objects, the object contains an element called \code{permuted_z}, which is a matrix containing the permuted value of each pivotal statistic for all permutations.
 #'
-#' @examples
-#' sri_network <- asnipe::get_network(srkw_sightings) #get the SRI network (via asnipe)
-#' sri_denominator <- get_denominator(srkw_sightings, data_format = "GBI", return = "matrix") #get the denominators
-#' same_sex <- attribute_similarity(srkw_attributes$sex) #sex similarity
-#'
-#' #run model for associations
-#' glmqap(sri_network ~ same_sex + srkw_kinship, weights = sri_denominator, family = "binomial")
-#'
-#' #run model for interaction rates
-#' glmqap(srkw_contact ~ same_sex + srkw_kinship, offset = log(srkw_sampling), family = "poisson")
-#'
 #' @export
 glmqap <- function(formula, family = "gaussian", weights=NULL, offset=NULL, nperm=1000, permutation = "DSP"){
 

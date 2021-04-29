@@ -314,6 +314,8 @@ dsp.glm <- function(model, nperm){
 #' Note that all categorical variables should be dummy coded into a set of binary variables prior to model fitting.
 #' The function currently supports \code{lm} and \code{glm} objects, as well as models fit using \code{lmer} and \code{glmer} in the \code{lme4} package.
 #'
+#' @return A table with the model estimated coefficients, standard errors, and pivotal statistics, along with the permutation-based P-value.
+#'
 #' @examples
 #' contact_rate <- igraph::graph.adjacency(srkw_contact/srkw_sampling, weighted = T, mode = "undirected") #get contact rate graph
 #' contact_eigen <- igraph::eigen_centrality(contact_rate, scale = F)$vector #get eigenvector centrality
