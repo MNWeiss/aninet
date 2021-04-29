@@ -25,10 +25,3 @@ A drawback of DSP is it does not provide a way to test interaction effects in a 
 Note that all categorical variables should be dummy coded into a set of binary variables prior to model fitting.
 The function currently supports \code{lm} and \code{glm} objects, as well as models fit using \code{lmer} and \code{glmer} in the \code{lme4} package.
 }
-\examples{
-contact_rate <- igraph::graph.adjacency(srkw_contact/srkw_sampling, weighted = T, mode = "undirected") #get contact rate graph
-contact_eigen <- igraph::eigen_centrality(contact_rate, scale = F)$vector #get eigenvector centrality
-model_eigen <- lm(log(contact_eigen) ~ age + sex, data = srkw_attributes) # fit the model
-double_semi_partialling(model_eigen, 1000) #do the permutations
-
-}

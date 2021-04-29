@@ -316,12 +316,6 @@ dsp.glm <- function(model, nperm){
 #'
 #' @return A table with the model estimated coefficients, standard errors, and pivotal statistics, along with the permutation-based P-value.
 #'
-#' @examples
-#' contact_rate <- igraph::graph.adjacency(srkw_contact/srkw_sampling, weighted = T, mode = "undirected") #get contact rate graph
-#' contact_eigen <- igraph::eigen_centrality(contact_rate, scale = F)$vector #get eigenvector centrality
-#' model_eigen <- lm(log(contact_eigen) ~ age + sex, data = srkw_attributes) # fit the model
-#' double_semi_partialling(model_eigen, 1000) #do the permutations
-#'
 #' @export
 
 double_semi_partialling <- function(model, nperm){
