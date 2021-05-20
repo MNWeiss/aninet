@@ -12,6 +12,7 @@ Imports:
   igraph,
   rjags,
   runjags,
+  brms,
   MCMCpack,
   backbone
 Authors@R: 
