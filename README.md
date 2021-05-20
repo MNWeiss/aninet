@@ -5,9 +5,14 @@ The aninet R package is free and open source software for the statistical analys
 # Installation
 
 To install aninet, first install the \code{devtools} R package. Then, enter the following code:
-
+```
+{
   devtools::install_github("MNWeiss/aninet")
-  
+}
+```
 Then, to load the package, run:
-
+```
+{
   library(aninet)
+}
+```
