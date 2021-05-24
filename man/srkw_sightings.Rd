@@ -13,4 +13,7 @@ srkw_sightings
 \description{
 Sightings history of J pod over a 10 day observation period
 }
+\references{
+Weiss, M.N., Franks, D. W., Giles, D. A., Youngstrom, S., Wasser, S. K., Balcomb, K. C., Ellifrit, D. K., Domenici, P., Cant, M. A., Ellis, S., Nielsen, M. L. K., Grimes, C., & Croft, D. P. (In press) Age and sex influence social interactiosn, but not associations, within a killer whale pod. Proceedings of the Royal Society B, In press.
+}
 \keyword{datasets}
