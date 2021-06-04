@@ -4,16 +4,16 @@
 #'
 #' @param Num Numeric vector, numerator of the association indices
 #' @param Den Numeric vector, denominator of association indices
-#' @param method Character, indicating what likelihood function to use
-#' @param res Resolution used for integration (only used for \code{method = "Whitehead"})
 #' @param initial.params Initial parameters for model fitting
+#' @param nsim Number of parametric bootstraps to draw for error estimation. See details.
 #'
 #' @details Social differentiation is commonly defined as the coefficient of variation of the true, underlying association probabilities. This estimation procedure assumes that the underlying probabilities follow a beta distribution, and estimates the parameters of this distribution given the observed association indices.
 #' The estimation of social differeniation serves as both a helpful descriptor of social structure, and a useful measure for determining the power and precision of social analyses. The estimated correlation between true and observed association indices can be derived by dividing the estimated social differentiation by the observed CV of association indices.
-#' This function can perform estimation in two ways. The first is using the likelihood function given by Whitehead (2009), using \code{method = "Whitehead"}. The second uses the probability mass function of the beta-binomial distribution using \code{method = "Beta-binomial"}.
-#' Because it requires numeric integration, the \code{"Whitehead"} method is much slower than the \code{"Beta-binomial"} method, however has the upside of being directly comparable to results from SOCPROG (and thus the vast majority of values reported in the literature).
-#' Data should be numeric vectors of numerators and denominators, rather than square matrices. See \code{get_numerator()} and \code{get_denominator()} for easy ways to extract these from raw data.
-#' This function calculates and returns the standard error and confidence interval for the estimated social differentiation and correlation. This is based on the inverse Hessian matrix from the optimization routine. Note that a bootstrap of the raw data may be more robust.
+#' In some edge cases, where social differentiation is very high, a correlation greater than 1 can be estimated. In these cases we recommend primarily interpretting the lower bound of the confidence interval.
+#' Results using this package may differ slightly from results obtained using SOCPROG in MATLAB; this is because SOCPROG uses a slightly different method to estimate the likelihood, numerically integrating over the possible probability values given the parameters of the beta distribution. In this package, we explicitly use the probability mass function of the beta-binomial distribution.
+#' Differences should be small, however results from this function should be more precise than those obtained in SOCPROG.
+#' This function estimates the standard error and confidence intervals for both social differentiation and the estimated correlation. This is based on a parametric bootstrap from the estimated mean and covariance matrix for the underlying beta distribution parameters.
+#' A potentially more conservative way to estimate this error is through a non-parametric bootstrap or jackknife of the raw association data. We recommend setting nsim = 1 if calculating social differentiation on many resampled datasets, to speed up computation.
 #'
 #' @return A matrix containing the estimated social differentiation, the CV of the observed associations, and the estimated correlation between true and observed association indices, along with standard errors and confidence intervals.
 #'
@@ -23,29 +23,10 @@
 #' social_differentiation(X, D, method = "Beta-binomial")
 #'
 #' @export
-social_differentiation <- function(Num, Den, method = c("Whitehead","Beta-binomial"), res = 0.001,  initial.params = c(0.1,0.1)){
-  if(length(method) > 1) method <- method[1]
-  if(!method %in% c("Whitehead","Beta-binomial")) method <- "Whitehead"
+social_differentiation <- function(Num, Den, initial.params = c(0.1,0.1), nsim = 100000){
   X <- Num
   D <- Den
   #likelihood functions for social differentiation
-  LL.whitehead <- function(z, X, D, delt){
-    a <- exp(z[1])
-    b <- exp(z[2])
-    deltint <- as.vector(seq(from = delt, to = 1 - delt, by = delt))
-    D <- as.matrix(D)
-    X <- as.matrix(X)
-    deltint <- as.vector(seq(from = delt, to = 1 - delt, by = delt)) #vector of values in [0,1]
-    ndel <- length(deltint)
-    nX <- length(X)
-    XX <- X %*% t(rep(1, ndel))
-    DD <- D %*% t(rep(1, ndel))
-    deldel <- rep(1, nX) %*% t(deltint)
-    rrx <- suppressWarnings(stats::dbeta(deltint, a, b)) #density for beta
-    I <- ((deldel^XX)*((1-deldel)^(DD-XX))) %*% rrx
-    I <- sum(log(I))
-    -I
-  }
   LL.betabinom <- function(z, X, D){
     a <- exp(z[1])
     b <- exp(z[2])
@@ -54,12 +35,7 @@ social_differentiation <- function(Num, Den, method = c("Whitehead","Beta-binomi
     -I
   }
   #get parameter estimates
-  if(method == "Whitehead"){
-    result <- stats::optim(initial.params, fn = LL.whitehead, X = X, D = D, delt = res, hessian = T) #MLE for all AIs
-  }
-  if(method == "Beta-binomial"){
-    result <- stats::optim(initial.params, fn = LL.betabinom, X = X, D = D, hessian = T) #MLE for all AIs
-  }
+  result <- stats::optim(initial.params, fn = LL.betabinom, X = X, D = D, hessian = T) #MLE for all AIs
   #transform parameters
   a <- exp(result$par[1])
   b <- exp(result$par[2])
@@ -73,7 +49,7 @@ social_differentiation <- function(Num, Den, method = c("Whitehead","Beta-binomi
   #estimated correlation
   correlation <- estimate/observed
   #sample parameters based on estimates and hessian matrix
-  samp <- MASS::mvrnorm(n = 100000, mu = result$par, Sigma = solve(result$hessian))
+  samp <- MASS::mvrnorm(n = nsim, mu = result$par, Sigma = solve(result$hessian))
   #distribution of CVs
   cv.samp <- apply(samp,1,function(z){
       a <- exp(z[1])
