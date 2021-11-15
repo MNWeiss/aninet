@@ -150,11 +150,11 @@ plot(surfacing_rate ~ srkw_csi, main = "Surfacing")
 
 ```
 
-A word of caution: it is very important that the networks that go into calculating DCSIs positively covary, and that they represent similar things about social relationships. Aggressive interactions should probably not be included alongside affiliative interactions, for example. Additionally, the components interactions and associations should be relevant to the biological question being asked. Knowing what should go into a DCSI will require specific knowledge of the system being studied.
+A word of caution: it is very important that the networks that go into calculating DCSIs positively covary, and that they represent similar things about social relationships. Aggressive interactions should probably not be included alongside affiliative interactions, for example. Additionally, the component interactions and associations should be relevant to the biological question being asked. Knowing what should go into a DCSI will require specific knowledge of the system being studied.
 
 ### Generalised affiliation indices
 
-So far, we've focused on measuring social relationships using the rates of association or interaction, and potentially combining multiple measures. But what if we aren't sure that association or interaction rates are actually representative of social relationships? In some cases, particularly when using association indices, our observations could be biased by various confounds. For example, what if individuals have no specific social relationship, but their homeranges coincidentally overlap, leading to apparent association? Or, what if some individuals are simply more gregarious than others, so all of their relationships appear to be stronger than others, when in fact there is nothing specific about these social preferences?
+So far, we've focused on measuring social relationships using the rates of association or interaction, and potentially combining multiple measures. But what if we aren't sure that association or interaction rates are actually representative of social relationships? In some cases, particularly when using association indices, our observations could be biased by various confounds. For example, what if individuals have no specific social relationship, but their home ranges coincidentally overlap, leading to apparent association? Or, what if some individuals are simply more gregarious than others, so all of their relationships appear to be stronger than others, when in fact there is nothing specific about these social preferences?
 
 There are a few different ways to deal with this. One is to ignore this issue. If we are interested in the end result of social interactions/associations, we may not be particularly worried about what processes generated the observed network, but only how it relates to some outcome. Another is to use permutation procedures or covariates in our statistical models to correct for these effects later in the analysis (see this package's vignette on regression in animal social networks).
 
@@ -182,13 +182,13 @@ plot(srkw_gai ~ srkw_hwi)
 
 We can see that the resulting GAIs aren't really correlated with the original HWI at all; this might tell us that most of the variation in our HWIs was being driven by our "confounds" (here, mostly kinship). It is usually a good idea to check the importance of confounds prior to analyzing GAI network; this can be done using network regression methods (see later vignettes).
 
-When analyzing GAIs as a network, it is often necessary to drop the negative GAI value from the network; most graph theoretic approaches assume that edge weights are strictly non-negative.
+When analyzing GAIs as a network, it is often necessary to drop the negative GAI value from the network; most graph theoretic approaches assume that edge weights are strictly non-negative. I don't find this particularly satisfying, as we're losing a lot of information about social avoidance when we do this. One solution may be to analyze the negative values as a separate "social avoidance" network.
 
 ## Storing network data in R
 
 So far, we've been storing network data as adjacency matrices, N x N matrices where the entries are the edge weights between individuals. This is a useful and flexible way of storing and analyzing network data, but for some tasks we might want to use more specialized methods.
 
-The igraph package provides a lot of graph-theoretic methods, particularly the calculation of centrality indices and community detections algorithms. To work with networks in igraph, you first have to store them as igraph objects. I'll demonstrate that here with the contact rate data:
+The \code{igraph} package provides a lot of graph-theoretic methods, particularly the calculation of centrality indices and community detections algorithms. To work with networks in igraph, you first have to store them as igraph objects. I'll demonstrate that here with the contact rate data:
 
 ```{r}
 contact_graph <- graph.adjacency(contact_rate, weighted = T, mode = "undirected")
