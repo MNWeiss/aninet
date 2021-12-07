@@ -13,8 +13,7 @@ Imports:
   rjags,
   runjags,
   brms,
-  MCMCpack,
-  backbone
+  MCMCpack
 Authors@R: 
     person(given = "Michael",
            family = "Weiss",
