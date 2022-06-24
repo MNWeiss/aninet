@@ -13,6 +13,9 @@ Imports:
   rjags,
   runjags,
   brms,
+  coda,
+  mcmcse,
+  binom,
   MCMCpack
 Authors@R: 
     person(given = "Michael",

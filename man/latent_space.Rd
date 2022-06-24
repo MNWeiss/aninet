@@ -46,7 +46,7 @@ Fits a D dimensional latent space model of the given family to a matrix of assoc
 }
 \details{
 Social networks often exhibit transitivity, where a connection between B and C is likely to be stronger if B and C have strong connections to a third individual A. This tendency is often referred to as "triadic closure."
-One way to account for this in regression settings is to view nodes as being placed within a D dimensional latent space, with edges partially determined by the euclidean distances between nodes.
+One way to account for this in regression settings is to view nodes as being placed within a D dimensional latent space, with edges partially determined by the euclidean distances between nodes. Due to the triangle inequality, the distance between B and C (D(B,C)) will always be less than or equal to the sum of the distances D(A,C) and D(A,B). Thus, the model induces some degree of transitivity.
 This function fits one of these latent space models to a matrix of associations or interactions. For interactions, a Poisson model should be fit, with effort indicating the sampling time per dyad. For associations, a binomial model should be fit, with effort being indicated by the denominator of the association index.
 In both cases, the response matrix should be a matrix of integers, indicating the number of dyadic interactions or associations.
 This function fits the model using Gibbs sampling via JAGS and runjags, and allows the user to define priors for fixed effects, the covariance matrix of the latent positions, and individual random effects (if included).
