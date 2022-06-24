@@ -163,6 +163,8 @@ plot.gbi_null <- function(x){
 
 summary.gbi_null <- function(x){
 
+  all_mcmc <- do.call(rbind,x$mcmc)
+
   psrf <- coda::gelman.diag(x$mcmc,multivariate = F)[[1]][,1]
 
   ess_mean <- mcmcse::ess(x$mcmc)
@@ -186,7 +188,6 @@ summary.gbi_null <- function(x){
   }))
   ess_pval <- mcmcse::ess(pval_matrices)
 
-  all_mcmc <- do.call(rbind, x$mcmc)
   p_gr <- sapply(1:length(x$observed), function(z){
     mean(all_mcmc[,z] > x$observed[z])
   })
