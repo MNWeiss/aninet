@@ -72,20 +72,18 @@ gbi_MCMC <- function(data,
     res_matrix <- matrix(nrow = samples, ncol = length(observed))
     colnames(res_matrix) <- names(observed)
 
-    for(i in 1:burnin){
-      for(j in 1:thin){
-        cols <- sample(N,2)
-        rows <- sample(G,2)
-        trial_matrix <- gbi.p[rows,cols]
-        if( all(rowSums(trial_matrix) == 1) &
-            all(colSums(trial_matrix) == 1) &
-            group_constraint[rows[1]] == group_constraint[rows[2]] &
-            ind_constraint[cols[1]] == ind_constraint[cols[2]]){
+    for(i in 1:(burnin*thin)){
+      cols <- sample(N,2)
+      rows <- sample(G,2)
+      trial_matrix <- gbi.p[rows,cols]
+      if( all(rowSums(trial_matrix) == 1) &
+          all(colSums(trial_matrix) == 1) &
+          group_constraint[rows[1]] == group_constraint[rows[2]] &
+          ind_constraint[cols[1]] == ind_constraint[cols[2]]){
 
-          trial_matrix <- ifelse(trial_matrix == 1, 0, 1)
-          gbi.p[rows,cols] <- trial_matrix
+        trial_matrix <- ifelse(trial_matrix == 1, 0, 1)
+        gbi.p[rows,cols] <- trial_matrix
 
-        }
       }
     }
 
