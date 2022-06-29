@@ -44,7 +44,7 @@ social_differentiation <- function(Num, Den, initial.params = c(0.1,0.1), nsim =
 
   if(any(D %% 1 != 0)){
 
-    warning("Denominators contain non-integers, defaulting to integration method")
+    warning("Denominators contain non-integers, defaulting to integration method.")
 
     LL.betabinom <- function(z,X,D){
 
