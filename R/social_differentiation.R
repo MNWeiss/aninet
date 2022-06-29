@@ -56,7 +56,7 @@ social_differentiation <- function(Num, Den, initial.params = c(0.1,0.1), nsim =
       }
 
       int <- sapply(1:length(X), function(index){
-        integrate(int_fun, lower = 0, upper = 1, x = X[index], d = D[index], subdivisions = 1000)$value
+        integrate(int_fun, lower = 0, upper = 1, x = X[index], d = D[index])$value
       })
 
       -sum(log(int))
