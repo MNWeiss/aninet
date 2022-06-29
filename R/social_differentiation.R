@@ -9,23 +9,30 @@
 #'
 #' @details Social differentiation is commonly defined as the coefficient of variation of the true, underlying association probabilities. This estimation procedure assumes that the underlying probabilities follow a beta distribution, and estimates the parameters of this distribution given the observed association indices.
 #' The estimation of social differeniation serves as both a helpful descriptor of social structure, and a useful measure for determining the power and precision of social analyses. The estimated correlation between true and observed association indices can be derived by dividing the estimated social differentiation by the observed CV of association indices.
-#' In some edge cases, where social differentiation is very high, a correlation greater than 1 can be estimated. In these cases we recommend primarily interpretting the lower bound of the confidence interval.
-#' Results using this package may differ slightly from results obtained using SOCPROG in MATLAB; this is because SOCPROG uses a slightly different method to estimate the likelihood, numerically integrating over the possible probability values given the parameters of the beta distribution. In this package, we explicitly use the probability mass function of the beta-binomial distribution.
-#' Differences should be small, however results from this function should be more precise than those obtained in SOCPROG.
+#' In some edge cases, where social differentiation is very high, a correlation greater than 1 can be estimated. In these cases we recommend primarily interpreting the lower bound of the confidence interval.
+#' Results using this package may differ slightly from results obtained using SOCPROG in MATLAB; this is because SOCPROG uses a slightly different method to estimate the likelihood, numerically integrating over the possible probability values given the parameters of the beta distribution. In this package, we explicitly use the probability mass function of the beta-binomial distribution by default.
+#' Differences should be small, however results from this function should be more precise than those obtained in SOCPROG. If non-integers are present in the denominators (e.g. because the indices are calculated using HWI), then the function uses the integration method.
 #' This function estimates the standard error and confidence intervals for both social differentiation and the estimated correlation. This is based on a parametric bootstrap from the estimated mean and covariance matrix for the underlying beta distribution parameters.
-#' A potentially more conservative way to estimate this error is through a non-parametric bootstrap or jackknife of the raw association data. We recommend setting nsim = 1 if calculating social differentiation on many resampled datasets, to speed up computation.
+#' A potentially more conservative way to estimate this error is through a non-parametric bootstrap or jackknife of the raw association data. We recommend setting nsim = 0 if calculating social differentiation on many resampled datasets, to speed up computation.
 #'
 #' @return A matrix containing the estimated social differentiation, the CV of the observed associations, and the estimated correlation between true and observed association indices, along with standard errors and confidence intervals.
 #'
 #' @examples
 #' X <- get_numerator(srkw_sightings, return = "vector", data_format = "GBI")
 #' D <- get_denominator(srkw_sightings, return = "vector", data_format = "GBI")
-#' social_differentiation(X, D, method = "Beta-binomial")
+#' social_differentiation(X, D)
 #'
 #' @export
 social_differentiation <- function(Num, Den, initial.params = c(0.1,0.1), nsim = 100000){
+
   X <- Num
   D <- Den
+
+  X <- X[D > 0]
+  D <- D[D > 0]
+
+  if(any(X %% 1 != 0)) stop("Numerators contain non-integers")
+
   #likelihood functions for social differentiation
   LL.betabinom <- function(z, X, D){
     a <- exp(z[1])
@@ -34,6 +41,30 @@ social_differentiation <- function(Num, Den, initial.params = c(0.1,0.1), nsim =
     I <- sum(ll)
     -I
   }
+
+  if(any(D %% 1 != 0)){
+
+    warning("Denominators contain non-integers, defaulting to integration method")
+
+    LL.betabinom <- function(z,X,D){
+
+      a <- exp(z[1])
+      b <- exp(z[2])
+
+      int_fun <- function(p,x,d){
+        dbeta(p,a,b) * p^x * (1-p)^(d-x) * choose(d, x)
+      }
+
+      int <- sapply(1:length(X), function(index){
+        integrate(int_fun, lower = 0, upper = 1, x = X[index], d = D[index], subdivisions = 1000)$value
+      })
+
+      -sum(log(int))
+
+    }
+
+  }
+
   #get parameter estimates
   result <- stats::optim(initial.params, fn = LL.betabinom, X = X, D = D, hessian = T) #MLE for all AIs
   #transform parameters
@@ -48,21 +79,29 @@ social_differentiation <- function(Num, Den, initial.params = c(0.1,0.1), nsim =
   observed <- stats::sd(X/D)/mean(X/D)
   #estimated correlation
   correlation <- estimate/observed
-  #sample parameters based on estimates and hessian matrix
-  samp <- MASS::mvrnorm(n = nsim, mu = result$par, Sigma = solve(result$hessian))
-  #distribution of CVs
-  cv.samp <- apply(samp,1,function(z){
+
+  if(nsim > 1){
+    #sample parameters based on estimates and hessian matrix
+    samp <- MASS::mvrnorm(n = nsim, mu = result$par, Sigma = solve(result$hessian))
+    #distribution of CVs
+    cv.samp <- apply(samp,1,function(z){
       a <- exp(z[1])
       b <- exp(z[2])
       mean.fit = a/(a+b)
       sd.fit = sqrt((a*b)/((a+b)^2*(a+b+1)))
       sd.fit/mean.fit
-  })
-  #get SEs and CIs
-  se_S <- sd(cv.samp, na.rm = T)
-  se_r <- sd(cv.samp/observed, na.rm = T)
-  ci_S <- quantile(cv.samp, c(0.025,0.975), na.rm = T)
-  ci_r <- quantile(cv.samp/observed, c(0.025,0.975), na.rm = T)
+    })
+    #get SEs and CIs
+    se_S <- sd(cv.samp, na.rm = T)
+    se_r <- sd(cv.samp/observed, na.rm = T)
+    ci_S <- quantile(cv.samp, c(0.025,0.975), na.rm = T)
+    ci_r <- quantile(cv.samp/observed, c(0.025,0.975), na.rm = T)
+  }else{
+    se_S <- NA
+    se_r <- NA
+    ci_S <- NA
+    ci_r <- NA
+  }
 
   #make summary table
   summary <- matrix(nrow = 3, ncol = 4)
@@ -76,5 +115,6 @@ social_differentiation <- function(Num, Den, initial.params = c(0.1,0.1), nsim =
   summary[3,1] <- correlation
   summary[3,2] <- se_r
   summary[3,c(3,4)] <- ci_r
+
   return(summary)
 }
