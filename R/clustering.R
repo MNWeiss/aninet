@@ -11,6 +11,7 @@
 #' @return A named list containing the best modularity ("maximum_modularity"), the cophenetic clustering coefficient ("CCC"), the clustering tree ("tree"), a dataframe of cut heights and modularity ("cuts"), and merge information ("merge").
 #' See \code{hclust} for details on manipulating and plotting trees.
 #' @export
+
 association_hclust <- function(network, method = "average"){
   m <- network
   graph = igraph::graph.adjacency(m, mode = "undirected", weighted = T)

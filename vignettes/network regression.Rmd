@@ -1,0 +1,276 @@
+---
+title: "Regression in Animal Social Networks"
+author: "Michael Weiss"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Regression in Animal Social Networks}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## In this vignette
+
+In previous vignettes, we've covered the basics of how to generate and store animal social networks in R. Here, we'll go a bit deeper into doing regression in animal social networks. 
+
+We'll cover five general topics:
+
+* Node label permutations
+* MRQAP and Mantel tests
+* GLMQAP
+* Latent space models
+* Exponential random graph models (ERGMs)
+
+## Set-up
+
+We need to load a few packages to do the analyses here, and set a seed for reproducibility.
+
+```{r, message = F}
+
+require(aninet)
+require(asnipe)
+require(ergm)
+require(ergm.count)
+require(latentnet)
+require(vegan)
+
+set.seed(420)
+
+```
+
+## Problems with regression in networks
+
+### Overview of the generalised linear model
+
+Regression is one of the most common forms of statistical analysis in science. In particular, the various forms of the generalised linear model are used in almost every analysis in behavioural ecology. Most common statistical tests that get conducted in biology (t-tests, ANOVA, correlations, multiple regression) are just special cases of the generalised linear model.
+
+The generalised linear model takes the form:
+
+$E(Y) = g^{-1}(X\beta)$
+
+Where $Y$ is the response, $X$ is a matrix of predictors, $\beta$ are estimated fixed effects, and $g$ is the link function. We then model the likelihood of $Y$ as arising from a particular distribution (Normal, Poisson, Binomial, Beta, Gamma, etc.). Additional parameters can be estimated (such as variance) depending on the specific model used.
+
+For example, in a simple linear model, the link function $g$ is just the identity function, and we assume that 
+
+$Y \sim \mbox{Normal}(\mu, \sigma)$
+
+$\mu = X\beta$
+
+A t-test is simply this model when our design matrix $X$ is a vector of 0s and 1s indicating group membership. An ANOVA would contain multiple indicator variables.
+
+Similarly, we can model a binomial variable with number of trials $n$ and proabability of success $p$ using a logit link function, which keeps our values of $p$ within $(0,1)$:
+
+$Y \sim \mbox{Binomial}(p, n)$/
+
+$\mbox{logit}(p) = X\beta$
+
+In the case of Poisson regression, we model the rate parameter $\lambda$ using a log link, keeping the values of the rate strictly non-negative:
+
+$Y \sim \mbox{Poisson}(\lambda)$
+
+$\mbox{log}(\lambda) = X\beta$
+
+A key point is that the $Y$ are always assumed to be independent of one another. When $Y$ are derived from social network data, this is almost never the case. 
+
+### Potential issues
+
+#### Non-independence
+
+Consider node-based measures, such as degree or strength. An individual's degree in a network is based on ties that also contribute to the degree of other individuals, so these measures are dependent on one another.
+
+Another way that network measures can be dependent is at the edge level; edges may often be correlated because they are connected to a common individual (individual sociality effects), or because of tendencies for triad closure in networks (if A has edges B and C, and edge between B and C is more likely).
+
+#### Biases, confounds, and uncertainty
+
+In addition to the non-independence problem, animal social networks are often prone to issues resulting from the way the data underlying the network are collected. Differences in sighting histories and identifiability can bias network measures, as can the method of data collection (group sampling, focal follows). When we are explicitly interested in social processes, we may also worry about confounds such as space use and demographic processes like birth, death, and migration. Finally, our sampled social data are only subset of the true interactions or associations, and therefore there are uncertainties in our network measures. When networks are the response in a model, this is fine; regression models inherently subsume measurement error into the error in the model. However, if we are using social networks as predictors, this becomes a potential problem.
+
+## Permutation approaches
+
+One way to deal with these issues is to not worry about incorporating them into the model, but focus on calculating significance using permutations. These permutations maintain the non-independence of the measures, but break the covariance between your predictors and responses, thus building a null distribution to test your hypothesis against.
+
+### Nodal regression
+
+Let's use the killer whale data stored in `aninet` to examine how permutation-based hypothesis testing in networks might work. We'll test the hypothesis that age is unrelated to strength centrality in the network data, using the t-statistic as our test statistic.
+
+```{r}
+contact_rate <- srkw_contact/srkw_sampling #rate of physical contacts
+srkw_strength <- colSums(contact_rate) #individual strength centrality
+srkw_strength <- as.numeric(scale(srkw_strength)) # scale the strengths to have mean 0 and SD 1
+m1 <- lm(srkw_strength ~ age, data = srkw_attributes) # fit the linear model
+strength_t <- summary(m1)$coefficients[2,3] #save the t-value
+```
+
+Now that we have our observed test statistic, we need to build our null distribution. This is much simpler than it sounds, we'll just randomize the order of the vector holding the strength measurements repeatedly, refit the model each time, and save the permuted t-statistics:
+
+```{r}
+t_perm <- replicate(1000,{
+  strength_perm <- sample(srkw_strength)
+  m1.perm <- lm(strength_perm ~ age, data = srkw_attributes)
+  summary(m1.perm)$coefficients[2,3]
+})
+
+hist(t_perm,col="black",breaks=50,main="",xlab="t-value") #plot the results
+abline(v = strength_t, col = "red", lwd = 2)
+```
+
+In the plot above, the black histogram indicates the null distribution of t-statistics from the randomizations, and the red line is the value in the observed data. We can see that it looks like the observed value is different from what we'd expect. We can calculate a two-tailed p-value pretty easily:
+
+```{r}
+all_t <- c(strength_t,t_perm) # all t-values
+ls <- mean(all_t <= strength_t) # probability of a value less than the observed
+gr <- mean(all_t >= strength_t) # probability of a value greater than the observed
+pval <- min(c(ls,gr))*2 # two-tailed p-value
+pval
+```
+
+It looks like there's a significant relationship between age and network centrality!
+
+### Dyadic regression
+
+What if we want to know if dyadic covariates (e.g. kinship or similarity in some trait) predict social bonds? When using a permutation approach, we tend to use a broad set of tools called matrix correlations.
+
+#### Mantel tests
+
+The simplest matrix correlation is the Mantel test. This test consists of calculating the correlation between the entries of the matrices, and then shuffling the rows and columns to build a null distribution. We can run this test easily in the `vegan` package.
+
+Let's test for a correlation between kinship and contact rate. We'll use a Spearman's correlation to account for the non-normality of our two variables.
+
+```{r}
+mantel(contact_rate, srkw_kinship, method = "spearman")
+```
+
+#### MRQAP
+
+Let's say we want to extend this to multiple predictors. We can fit a multiple regression or partial correlation quite easily, but how to derive p-values? If we randomize the response, we're testing whether the total effect of all predictors is larger than expected. If we randomize each predictor, we're not correcting for covariance between predictors.
+
+One good answer lies in the "double-semi-partialling" method, which uses residual permutation to maintain the covaraince between the predictors (see Dekker et al. 2007 for more details).
+
+We can perform this procedure in `asnipe` using the `mrqap.dsp` function. The MRQAP here stands for "multiple regression quadratic assignment procedure". Let's do this to test the joint effects of kinship, age similarity, and sex similarity on contact rates. We first need to construct similarity matrices for age and sex. The `aninet` package contains a convenience function for constructing these matrices. We'll measure age similarity as the negative absolute difference in ages, and sex similarity will be a binary matrix indicating whether individuals are of the same sex.
+
+```{r}
+age_sim <- attribute_similarity(srkw_attributes$age, type = "absdiff")
+sex_sim <- attribute_similarity(srkw_attributes$sex, type = "discrete")
+```
+
+We'll use these matrices, along with the kinship matrix, to perform MRQAP.
+
+```{r}
+mrqap.dsp(contact_rate ~ srkw_kinship + age_sim + sex_sim, test.statistic = "t-value")
+```
+
+#### GLMQAP
+
+Some readers may have noticed a couple potential issues with MRQAP applied to animal social networks. First, our response is non-normal. Interaction data are generated via a Poisson-like process, while associations are binomial variables. Second, our responses are not measured with equal precision; each dyad is observed for a different amount of time (or different number of samples, for associations). How can we account for these facts in our MRQAP analysis?
+
+The answer is to use generalised linear models (GLMs) rather than typical linear regression to fit the initial model, but use the same double-semi-partialling procedure to derive p-values. I'll refer to this procedure as GLMQAP (generalised linear model quadratic assigment procedure).
+
+This has two benefits: we can now use non-normal responses, and we can incorporate sampling effort in a principled way. In Poisson models, sampling effort can be incorporated as a log-transformed offset, while in binomial models sampling effort can be included as sampling weights.
+
+A quick explanation of offsets in Poisson regression might be useful. Remember that in Poisson regression, we model:
+
+$Y \sim \mbox{Poisson}(\lambda)$
+
+$\mbox{log}(\lambda) = X\beta$
+
+If we want to incorporate the fact that each observation may have different sampling time $t$, we might want to actually model the rate $\lambda/t$.
+
+$\lambda/t = \mbox{exp}(X\beta)$
+
+which we can transform to
+
+$\lambda = \mbox{exp}(X\beta)*t$
+
+This is written out in terms of the inverse link function (the exponent). To get it back into the log-link function, we could then write:
+
+$\mbox{log}(\lambda) = X\beta + \mbox{log}(t)$
+
+So, to incorporate sampling effort $t$ into the model, all we need to do is add a $\mbox{log}(t)$ as a covariate with a coefficient fixed at 1.
+
+We can fit this model and perform DSP permutations using the `glmqap` function in `aninet`:
+
+```{r, message = F, progress = F, results = "hide"}
+contact_glm <- glmqap(srkw_contact ~ srkw_kinship + age_sim + sex_sim, 
+       offset = log(srkw_sampling), 
+       family = "poisson")
+```
+
+Let's look at the results:
+
+```{r}
+contact_glm
+```
+
+Notice that the results are similar to the MRQAP: all factors positively predict contact rate!
+
+## Model-based approaches
+
+Let's say we didn't want to do null-hypothesis significance testing. Maybe we are more interested in a model-selection approach, or in getting direct estimates with confidence intervals. We need models that are specially designed for networks.
+
+There are two main classes of models that are generally used in the network sciences: latent space models and exponential random graph models. While similar in the kinds of problems they might address, these two modelling frameworks are very different in how they conceptualize the problem.
+
+### Latent space models
+
+As mentioned previously, one of the issues in modelling social networks is the presence of transitivity/triad closure, meaning that edges are non-independent. One way that network statisticians have come up with to deal with this is to conceptualize individuals as occupying particular posititions $z$ within a $G$ dimensional social space, with social ties dependent on the distances $d$ between nodes in social space. This formulation enforces some degree of transitivity, and allows the likelihood of the model to be formulatled as a GLM. For a Poisson model, we can write the model for dyads $ij$
+
+$Y_{ij} \sim \mbox{Poisson}(\lambda_{ij})$
+
+
+$log(\lambda_{ij}) = \alpha + \sum_{p}^{P}\beta_{p}X_{pij} - d_{ij}$
+
+The $\alpha$ is the intercept, $\beta$ and $X$ are $P$ coefficients and covariates. You'll notice that this is very similar to the likelihood for the GLM (written out a bit more verbosely), but with the distance term $d_{ij}$. We'll take $d_{ij}$ to be a Euclidean distance between $i$ and $j$ in social space:
+
+$d_{ij} = \sqrt{\sum_{g}^{G} (z_{gi}-z_{gj})^2}$
+
+And assume that the positions are drawn from a multivariate normal distribution centered at the origin and with an estimated covariance matrix $\Sigma$:
+
+$z_{i} \sim \mbox{MVN}(0,\Sigma)$
+
+What about the other kind of non-independence, i.e. that edges might be correlated within individuals? We can account for one kind of within-individual correlation, sociality effects, by simply adding individual level random effects to the model:
+
+$\mbox{log}(\lambda_{ij}) = \alpha + \sum_{p}^{P}\beta_{p}X_{pij} - d_{ij} + \epsilon_i + \epsilon_j$
+
+$\epsilon_{i} \sim \mbox{Normal}(0,\sigma)$
+
+This model is tricky to estimate using maximum likelihood, but relatively straightforward to estimate using Bayesian methods.
+
+The `latentnet` package provides a nice, flexible framework for estimating these models for network data, including modelling social communities that cluster together in latent space. They do come with some caveats that make it difficult to apply them to animal networks. Specifically, they don't let you estimate the effects of covariates on edge weights, only on edge presence.
+
+The `aninet` package contains a less flexible method for fitting these models that can be useful for interaction and association networks through the `latent_space` function. This is essentially a wrapper for constructing JAGS models that are estimated using Gibbs sampling. We can fit the same model as in the GLMQAP using the `latent_space` model:
+
+```{r}
+ls_contact <- latent_space(srkw_contact ~ srkw_kinship + age_sim + sex_sim, 
+                           ind.RE = T, dimensions = 2, effort = srkw_sampling, 
+                           family = "poisson", adapt = 1000, burnin = 2000, sample = 2000)
+```
+
+Notice that we specify `effort` as the sampling time. For Poisson models, this matrix is interpretted as an offset. For binomial models, they are interpretted as binomial sample sizes.
+
+There are a few decisions to make here. We've included individual-level random effects (`ind.RE = T`) and fit 2 latent dimensions (`dimensions = 2`). We may want to fit models with different number of dimensions and compare them via DIC (more methods for model selection coming soon!). We also haven't set custom priors. The `latent_space` function lets the user supply priors for fixed effects (`beta.prior`), random effects (`re.prior`), and latent position covariance matrix (`vcv.prior`). The `latent_space` function expects the prior for fixed effects to be the parameters of a normal distribution (parameterized by the precision), and the prior for the random effects to be the parameters of a Gamma distribution. The prior for the covariance matrix should be a square matrix representing the parameters for a Wishart distribution.
+
+We can specify how many iterations to run the estimation algorithm for, including the adaptation phase (using `adapt =`), the burn-in phase (using `burnin =`) and sampling phase (using `sample = `). We intentionally use small values for these for this example; in almost all cases we would want a longer burn-in and sample run, and we would want to check that the chains have converged using trace plots, autocorrelations, and Gelman-Rubin statistics.
+
+There are many things we can examine from the model. The first would probably be the estimates for the fixed effects and variance of the random effects:
+
+```{r}
+ls_contact$summary
+```
+
+We can also use latent space modelling without regressors to generate positions for plotting the network in a principled manner:
+
+```{r}
+#fit a model with only the latent space as a predictor (we'll exclude random effects to speed up fitting)
+ls_plotting <- latent_space(srkw_contact ~ 1, 
+                            family = "poisson", 
+                            dimensions = 2, ind.RE = F, 
+                            effort = srkw_sampling, 
+                            sample = 50000, burnin = 20000)
+
+plot(ls_plotting) # plot the model fit
+```

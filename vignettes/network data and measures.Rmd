@@ -1,0 +1,218 @@
+---
+title: "Animal social network data and relationship measures"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{my-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## What this vignette covers
+
+Animal social network analysis is a broad set of methods and tools. This vignette is designed to give some very basic information to get started. Specifically, we'll cover a few of the types of raw data that might underly animal social network analyses, and how we might use those data to calculate relationship measures.
+
+## Set-up
+
+First we need to load in a few packages. Let's start with some animal SNA specific packages. The package "aninet" (which this vignette is a part of) contains some useful functions for statistical modelling of social data, along with the killer whale data that we're going to use for our examples, while asnipe is useful for calculating association indices and permuting them.
+
+```{r setup1, message = F}
+library(aninet)
+library(asnipe)
+library(spatsoc)
+```
+
+Next we'll load in some packages with general utility for social network analysis:
+
+```{r setup2, message = F}
+library(igraph)
+library(sna)
+```
+
+## Animal social network data
+
+Here we'll start with an overview of some of the raw data types you might come across in animal social network analysis. There are two general types of data, although in some cases there might be some edge cases that are hard to classify: associations and interactions.
+
+Interaction data are based off of observations (either direct or via sensors) of direct behaviors between identified individuals. The interaction that is maybe the most familiar to most people is grooming in primates, but interactions need not be affiliative. Networks could be based on aggression, physical contact, or any number of interactions. The key is that interpretations of network structure are relevant to the behaviors used to construct the network.
+
+Association data are based on observations of individuals being close enough in space and time to engage in relevant interactions. These data are useful when interactions are rare or difficult to observe.
+
+### Interactions
+
+The form that raw interaction data takes will depend on how the data were collected (i.e. scan samples, focal follows, animal borne sensors). Ultimately, what we'll want to end up with is a pair of square matrices. The rows and columns of the matrices correspond to individuals.
+
+The first matrix will indicate the number of interactions observed between each pair of individuals. Let's look at an example from the data in the aninet package. This dataset contains the number of physical contact interactions between identified killer whales. We'll look at interactions between a subset of 5 of these individuals.
+
+```{r, echo = F}
+knitr::kable(srkw_contact[1:5,1:5],format="simple")
+```
+
+We can see here that J45 came into contact with J40 2 times, J31 9 times, etc. You'll notice that this matrix is symmetric; J40 came into contact with J31 the same number of times J31 came into contact with J40. This need not be the case; in grooming networks, for example, the cells may indicate the number of times one individual groomed the other. A may have groomed B 5 times, while B did not groom A at all.
+
+This tells us the number of times each pair interacted. If every individual is observed evenly (perhaps because they are a constantly monitored captive group, or all have sensors on for the same period of time), this works fine as a social network as-is. However, when individuals are observed unevenly, because of the sampling method or differences between individuals in how often they were available to be sampledy, we need to have some measure of sampling effort per dyad.
+
+Sampling effort in interactions is best measured as the amount of time in which either individual was observed. For focal follow data, this would be the total time that either individual was the focal individual. For group follows (as in the killer whale data), this would be the total time that either individual was in the focal group. In scan sampling, this would be the number of scans in which either individual was observed. Other situations will require some thought into how to calculate sampling effort.
+
+The sampling effort matrix for the same killer whales looks like this (transformed from seconds to minute):
+
+```{r, echo = F}
+knitr::kable(srkw_sampling[1:5,1:5]/60,format="simple",format.args=list(digits=5))
+```
+
+The entries here indicate the number of minutes that at least one individual in each pair was observed.
+
+There are many cases where we might want to keep these separate (i.e. in regression contexts, see later vignettes). However, it's also useful to have a single social network that represents the interaction rates.
+
+```{r}
+contact_rate <- srkw_contact/(srkw_sampling/60) #interactions per minute
+```
+
+Let's look at these:
+
+```{r, echo = F}
+knitr::kable(contact_rate[1:5,1:5],format="simple",format.args=list(digits=1))
+```
+
+### Associations
+
+Association data are more common in studies where animals have large home-ranges, populations are large, or interactions are difficult to observe. As mentioned above, there are lots of different ways to define associates. As with interaction data, the key is to ensure that the definition of association used for a particular analysis is relevant to the biological question being asked.
+
+There are two very general forms of data that can ultimately be used to generate association networks: group-by-individual matrices (GBI) and sampling period arrays (SP). 
+
+A GBI matrix represents each unique grouping event as a row, and each individual as a column. The values of entry ij in the matrix is 1 if individual j is seen in group i, and 0 otherwise. 
+
+SP arrays, on the other hand, represent each sampling period (e.g. day, week, scan) as a square matrix, and therefore the full array is of dimensions T x N x N, where T is the number of sampling periods and N is the number of individuals. Entry ijk will be 1 if individuals j and k associated in period i, and 0 otherwise. It may also be useful to have a separate T x N matrix of individual occurrences within the data, to store information about individuals that were observed in a sampling period, but may have not associated with any other individuals.
+
+SP arrays and GBI matrices can be generated from several different data types, and there are packages to do so in R. See the documentation for the spatsoc and asnipe packages for in-depth tutorials of how to generate these data structures from particular observation types.
+
+Let's work with a small GBI matrix from the killer whale data:
+
+```{r, echo = F}
+knitr::kable(srkw_sightings,format="simple",format.args=list(digits=1))
+```
+
+Ultimately, we'll want to calculate an association index from these data. All association indices are ratios, and therefore have two parts: the numerator and the denominator. The numerator will almost always be the number of groups or sampling periods that individuals were observed in association. The denominator indicates how many periods individuals could have associated, possibly with some correction for sampling bias.
+
+We can get association indices directly using the asnipe package. We'll use the half-weight index, since this is used most often in marine mammal studies:
+
+```{r}
+srkw_hwi <- get_network(srkw_sightings, association_index = "HWI")
+```
+
+And let's look at the distribution of association indices:
+
+```{r}
+hist(srkw_hwi[lower.tri(srkw_hwi)], xlab = "HWI", main = "")
+```
+
+For some purposes, such as modelling associations as binomial variables, it might be more useful to get the numerator and denominator separately. The aninet package has two functions, get_numerator and get_denominator, that let us get these two components.
+
+```{r}
+X <- get_numerator(srkw_sightings, data_format = "GBI", return = "matrix")
+D <- get_denominator(srkw_sightings, data_format = "GBI", return = "matrix", index = "HWI")
+
+# check that our results match get_network
+
+all((X/D) == srkw_hwi, na.rm=T)
+
+```
+
+## Other relationship measures
+
+Interaction rates and association indices are the bread and butter of animal social network analyses, but sometimes they don't quite get the job done on their own. Here I'll cover a couple methods to generate alternative relationship measures from association and interaction data.
+
+### Composite sociality indices
+
+In some studies, we might have data on several interaction or association types. While it is often useful to analyse these separately, it might also be desirable to collapse them down to one, representative network. A commonly used method to do this is the calculation of dyadic composite sociality indices (DCSI). The aninet package provides a convenience function for calculating DCSIs from a list of networks. 
+
+```{r, fig.show = "hold"}
+
+contact_rate <- srkw_contact/srkw_sampling # contact rates
+surfacing_rate <- srkw_surfacing/srkw_sampling # synchronous surfacing rates
+
+# let's put interaction rates and association rates in a list
+
+network_list <- list(contact_rate, surfacing_rate, srkw_codetection)
+
+srkw_csi <- dyadic_csi(network_list)
+
+# let's see how our CSI covaries with the component networks
+
+plot(srkw_codetection ~ srkw_csi, main = "Association")
+plot(contact_rate ~ srkw_csi, main = "Contact")
+plot(surfacing_rate ~ srkw_csi, main = "Surfacing")
+
+```
+
+A word of caution: it is very important that the networks that go into calculating DCSIs positively covary, and that they represent similar things about social relationships. Aggressive interactions should probably not be included alongside affiliative interactions, for example. Additionally, the components interactions and associations should be relevant to the biological question being asked. Knowing what should go into a DCSI will require specific knowledge of the system being studied.
+
+### Generalised affiliation indices
+
+So far, we've focused on measuring social relationships using the rates of association or interaction, and potentially combining multiple measures. But what if we aren't sure that association or interaction rates are actually representative of social relationships? In some cases, particularly when using association indices, our observations could be biased by various confounds. For example, what if individuals have no specific social relationship, but their homeranges coincidentally overlap, leading to apparent association? Or, what if some individuals are simply more gregarious than others, so all of their relationships appear to be stronger than others, when in fact there is nothing specific about these social preferences?
+
+There are a few different ways to deal with this. One is to ignore this issue. If we are interested in the end result of social interactions/associations, we may not be particularly worried about what processes generated the observed network, but only how it relates to some outcome. Another is to use permutation procedures or covariates in our statistical models to correct for these effects later in the analysis (see this package's vignette on regression in animal social networks).
+
+If we do want to correct for these factors in the network itself, then we can use generalised affiliation indices (GAIs). GAIs treat the observed associations or interactions as the response in a generalised linear model, with the confounds as predictors. The residuals of this model are then used as a measure of affiliation, as they give an estimate of how much more time individuals spend associating or interacting than expected, given the confounds.
+
+Let's take the HWI measures from the killer whale dataset. We might, for a particular question, want to get a measure of how much more time whales spend together than we'd expect given their kinship and gregariousness.
+
+The gai function in aninet requires confounds to be specified as square matrices, over the same individuals as the network. Let's start by generating a measurement of joint gregariousness, as defined by Whitehead & James (2015):
+
+```{r}
+
+srkw_gregariousness <- joint_gregariousness(srkw_hwi, log.jg = T)
+
+```
+
+We can then use this measure, and the kinship measures stored as data in the aninet package, in the gai function. This function let's us specify our GAI in a glm-style formula, and returns the GAI adjacency matrix:
+
+```{r}
+
+srkw_gai <- gai(srkw_hwi ~ srkw_gregariousness + srkw_kinship, weights = D, family = "binomial")
+
+plot(srkw_gai ~ srkw_hwi)
+
+```
+
+We can see that the resulting GAIs aren't really correlated with the original HWI at all; this might tell us that most of the variation in our HWIs was being driven by our "confounds" (here, mostly kinship). It is usually a good idea to check the importance of confounds prior to analyzing GAI network; this can be done using network regression methods (see later vignettes).
+
+When analyzing GAIs as a network, it is often necessary to drop the negative GAI value from the network; most graph theoretic approaches assume that edge weights are strictly non-negative.
+
+## Storing network data in R
+
+So far, we've been storing network data as adjacency matrices, N x N matrices where the entries are the edge weights between individuals. This is a useful and flexible way of storing and analyzing network data, but for some tasks we might want to use more specialized methods.
+
+The igraph package provides a lot of graph-theoretic methods, particularly the calculation of centrality indices and community detections algorithms. To work with networks in igraph, you first have to store them as igraph objects. I'll demonstrate that here with the contact rate data:
+
+```{r}
+contact_graph <- graph.adjacency(contact_rate, weighted = T, mode = "undirected")
+plot(contact_graph, edge.width = 10*(E(contact_graph)$weight/max(E(contact_graph)$weight)))
+```
+
+Another useful set of packages is the statnet suite, including network, sna, and ergm packages. These are great for network plotting and various regression methods, along with some network metrics. These work with object of the class network, which we can easily get from our adjacency matrices:
+
+```{r}
+contact_network <- network(contact_rate, directed = F, ignore.eval = F, names.eval = "weight")
+plot(contact_network, edge.lwd = 10*(contact_rate/max(contact_rate)))
+```
+
+These classes also allow you to store edge and node attribute data in a single object. For example, we can add the age and sex of individuals to our contact rate igraph like so:
+
+```{r}
+V(contact_graph)$age <- srkw_attributes$age
+V(contact_graph)$sex <- srkw_attributes$sex
+```
+
+For network classes, the idea is the same, but the syntax is a bit different:
+
+```{r}
+contact_network%v%"age" <- srkw_attributes$age
+contact_network%v%"sex" <- srkw_attributes$sex
+```
+
