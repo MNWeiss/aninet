@@ -12,7 +12,9 @@
 #' In some edge cases, where social differentiation is very high, a correlation greater than 1 can be estimated. In these cases we recommend primarily interpreting the lower bound of the confidence interval.
 #'
 #' This function uses the likelihood of the beta-binomial distribution to estimate social differentiation. The original method for social differentiation (and the one used by SOCPROG) uses a slightly different method involving integrating over possible probability values.
-#' The beta-binomial method is faster and more precise, but cannot be used when the denominators of the assocation indices are not integers (e.g. because the HWI was calculated). In these cases, the function will default to the integration method, with a warning.
+#' The beta-binomial method is faster and more precise, but cannot be used when the denominators of the association indices are not integers (e.g. because the HWI was calculated). In these cases, the function will default to the integration method, with a warning.
+#'
+#' This function will return estimated standard errors and confidence intervals. This is estimated by drawing simulated values using the estimated parameters and their variance-covariance matrix. A more robust estimate of confidence can be achieved throu a bootstrap of the raw data. To save computation time, we recommend setting nsim < 1 in these cases.
 #'
 #' @return A matrix containing the estimated social differentiation, the CV of the observed associations, and the estimated correlation between true and observed association indices, along with standard errors and confidence intervals.
 #'
