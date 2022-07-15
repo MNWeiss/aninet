@@ -10,6 +10,7 @@
 #' @param burnin The number of samples before target statistics are calculated. Defaults to 1000.
 #' @param chains The number of independent chains to run. Defaults to 2.
 #' @param FUN A function taking a GBI as an input and outputting a vector of any length. See Details.
+#' @param ... Other arguments to be passed to FUN
 #'
 #' @details For some applications, it may be desirable to compare the observed social structure to a null model in which there are no social preferences. This is particularly useful when investigating whether individuals have social preferences, but may also have other uses.
 #' In these cases, the canonical method for generating the null model is a Markov Chain Monte Carlo procedure. For each iteration, a change in the matrix is proposed; if the change maintains row an column totals, and falls within the specified constraints, it is accepted, otherwise the matrix stays at its current state.
