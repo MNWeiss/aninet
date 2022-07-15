@@ -12,7 +12,8 @@ gbi_MCMC(
   thin = 100,
   burnin = 1000,
   chains = 2,
-  FUN = NULL
+  FUN = NULL,
+  ...
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ gbi_MCMC(
 \item{chains}{The number of independent chains to run. Defaults to 2.}
 
 \item{FUN}{A function taking a GBI as an input and outputting a vector of any length. See Details.}
+
+\item{...}{Other arguments to be passed to FUN}
 
 \item{sample}{The number of samples to draw for each chain. Defaults to 1000.}
 }
