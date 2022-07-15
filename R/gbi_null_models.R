@@ -31,7 +31,8 @@ gbi_MCMC <- function(data,
                      thin = 100,
                      burnin = 1000,
                      chains = 2,
-                     FUN = NULL){
+                     FUN = NULL,
+                     ...){
 
   if(!is.matrix(data) | any(!c(data) %in% c(0,1)) | any(is.na(data))){
     stop("Data must be a matrix containing only 1s and 0s")
@@ -61,7 +62,7 @@ gbi_MCMC <- function(data,
   }
   if(!is.function(FUN)) stop("FUN must be a function")
 
-  observed <- FUN(data)
+  observed <- FUN(data,...)
 
   chain_res <- list()
 
@@ -102,7 +103,7 @@ gbi_MCMC <- function(data,
 
         }
       }
-      res_matrix[i,] <- FUN(gbi.p)
+      res_matrix[i,] <- FUN(gbi.p,...)
     }
 
     chain_res[[k]] <- coda::mcmc(res_matrix, thin = thin, start = thin, end = thin*samples)
