@@ -179,12 +179,7 @@ summary.gbi_null <- function(x){
   print(dist_summary)
   cat("\n")
 
-  pval_matrices <- coda::mcmc.list(lapply(x$mcmc, function(y){
-    coda::mcmc(t(apply(y, 1, function(z){
-      ifelse(z > x$observed, 1, 0)
-    })))
-  }))
-  ess_pval <- mcmcse::ess(pval_matrices)
+  ess_pval <- ess_mean
 
   p_gr <- sapply(1:length(x$observed), function(z){
     mean(all_mcmc[,z] > x$observed[z])
