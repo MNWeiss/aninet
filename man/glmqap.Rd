@@ -53,15 +53,3 @@ The \code{"Y"} permutation method permutes the response matrix, and tests the nu
 The \code{"X"} method permutes each predictor matrix, testing the null hypothesis of no relationship, but importantly does not control for any covariance among predictors.
 Note that if your formula contains only a single predictor, the function will default to \code{permutation = "Y"}.
 }
-\examples{
-sri_network <- asnipe::get_network(srkw_sightings) #get the SRI network (via asnipe)
-sri_denominator <- get_denominator(srkw_sightings, data_format = "GBI", return = "matrix") #get the denominators
-same_sex <- attribute_similarity(srkw_attributes$sex) #sex similarity
-
-#run model for associations
-glmqap(sri_network ~ same_sex + srkw_kinship, weights = sri_denominator, family = "binomial")
-
-#run model for interaction rates
-glmqap(srkw_contact ~ same_sex + srkw_kinship, offset = log(srkw_sampling), family = "poisson")
-
-}

@@ -2,20 +2,21 @@
 % Please edit documentation in R/latent_space.R
 \name{plot.latsoc}
 \alias{plot.latsoc}
-\title{Plotting latent space fits}
+\title{Plotting latent space models}
 \usage{
 \method{plot}{latsoc}(
   object,
   post.method = "mean",
   edge.col = NULL,
   edge.lwd = NULL,
-  vertex.pch = 19,
+  vertex.pch = 21,
   vertex.col = "black",
   vertex.cex = 1,
   labels = F,
   label.col = NULL,
   label.cex = NULL,
-  ...
+  xlim = NULL,
+  ylim = NULL
 )
 }
 \arguments{
