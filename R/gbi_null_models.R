@@ -71,12 +71,20 @@ gbi_MCMC <- function(data,
 
   for(k in 1:chains){
 
+    cat(paste("Running Chain", k), sep = " ")
+    cat("\n")
+
     gbi.p <- data
 
     res_matrix <- matrix(nrow = samples, ncol = length(observed))
     colnames(res_matrix) <- names(observed)
 
+    pb <- utils::txtProgressBar(min = 0, max = burnin*thin,style=3)
+    cat(paste("Burning in for", burnin, "iterations", sep = " "))
+    cat("\n")
+
     for(i in 1:(burnin*thin)){
+      setTxtProgressBar(pb,i)
       cols <- sample(N,2)
       rows <- sample(G,2)
       trial_matrix <- gbi.p[rows,cols]
@@ -90,8 +98,16 @@ gbi_MCMC <- function(data,
 
       }
     }
+    close(pb)
+    cat("\n")
+
+    cat(paste("Sampling for",samples,"iterations",sep=" "))
+    cat("\n")
+
+    pb <- utils::txtProgressBar(min = 0, max = samples, style=3)
 
     for(i in 1:samples){
+      setTxtProgressBar(pb,i)
       for(j in 1:thin){
         cols <- sample(N,2)
         rows <- sample(G,2)
@@ -108,6 +124,8 @@ gbi_MCMC <- function(data,
       }
       res_matrix[i,] <- FUN(gbi.p,...)
     }
+
+    close(pb)
 
     final_gbis[[k]] <- gbi.p
     chain_res[[k]] <- coda::mcmc(res_matrix, thin = thin, start =(burnin+1)*thin, end = thin*(samples+burnin))
