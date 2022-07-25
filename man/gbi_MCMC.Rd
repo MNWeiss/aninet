@@ -23,6 +23,8 @@ gbi_MCMC(
 
 \item{group_constraint}{A vector group characteristics (usually time windows) to constrain permutations; defaults to NULL}
 
+\item{samples}{The number of samples to draw for each chain. Defaults to 1000.}
+
 \item{thin}{The number of steps between each draw. Defaults to 100.}
 
 \item{burnin}{The number of samples before target statistics are calculated. Defaults to 1000.}
@@ -32,8 +34,6 @@ gbi_MCMC(
 \item{FUN}{A function taking a GBI as an input and outputting a vector of any length. See Details.}
 
 \item{...}{Other arguments to be passed to FUN}
-
-\item{sample}{The number of samples to draw for each chain. Defaults to 1000.}
 }
 \value{
 An object of class \code{gbi_null}

@@ -84,7 +84,7 @@ gai <- function(formula,family="gaussian",weights=NULL,offset=NULL,type=c("devia
 #' @return A square matrix of similarity values
 #' @export
 attribute_similarity <- function(attr,type="discrete"){
-  if(class(attr) != "numeric" & class(attr) != "integer") type = "discrete"
+  if(!is(attr,"numeric")& !is(attr,"integer")) type = "discrete"
   if(type == "discrete"){
     res <- sapply(attr,function(z)ifelse(attr==z,1,0))
   }

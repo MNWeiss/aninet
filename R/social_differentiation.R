@@ -53,11 +53,11 @@ social_differentiation <- function(Num, Den, initial.params = c(0.1,0.1), nsim =
       b <- exp(z[2])
 
       int_fun <- function(p,x,d){
-        dbeta(p,a,b) * p^x * (1-p)^(d-x) * choose(d, x)
+        stats::dbeta(p,a,b) * p^x * (1-p)^(d-x) * choose(d, x)
       }
 
       int <- sapply(1:length(X), function(index){
-        integrate(int_fun, lower = 0, upper = 1, x = X[index], d = D[index])$value
+        stats::integrate(int_fun, lower = 0, upper = 1, x = X[index], d = D[index])$value
       })
 
       -sum(log(int))
@@ -93,10 +93,10 @@ social_differentiation <- function(Num, Den, initial.params = c(0.1,0.1), nsim =
       sd.fit/mean.fit
     })
     #get SEs and CIs
-    se_S <- sd(cv.samp, na.rm = T)
-    se_r <- sd(cv.samp/observed, na.rm = T)
-    ci_S <- quantile(cv.samp, c(0.025,0.975), na.rm = T)
-    ci_r <- quantile(cv.samp/observed, c(0.025,0.975), na.rm = T)
+    se_S <- stats::sd(cv.samp, na.rm = T)
+    se_r <- stats::sd(cv.samp/observed, na.rm = T)
+    ci_S <- stats::quantile(cv.samp, c(0.025,0.975), na.rm = T)
+    ci_r <- stats::quantile(cv.samp/observed, c(0.025,0.975), na.rm = T)
   }else{
     se_S <- NA
     se_r <- NA

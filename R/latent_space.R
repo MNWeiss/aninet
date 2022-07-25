@@ -68,7 +68,7 @@ latent_space <- function(formula, family = "poisson", dimensions = 2, ind.RE = T
     diag(rate) <- 0
     rate.dist <- 1 - (rate/max(rate, na.rm=T)) + 1e-6
     diag(rate.dist) <- 0
-    rate.dist <- as.dist(rate.dist)
+    rate.dist <- stats::as.dist(rate.dist)
     z0 <- MASS::isoMDS(rate.dist,k=dimensions)$points
   }
 
@@ -437,7 +437,7 @@ latent_space <- function(formula, family = "poisson", dimensions = 2, ind.RE = T
   }
 
   d <- array(dim = c(nrow(res),n,n))
-  for(i in 1:nrow(res)) d[i,,] <- as.matrix(dist(z[i,,]))
+  for(i in 1:nrow(res)) d[i,,] <- as.matrix(stats::dist(z[i,,]))
 
   if(ind.RE){
     summ <- summary(fit, vars = c("beta","sigma"))
@@ -473,7 +473,8 @@ latent_space <- function(formula, family = "poisson", dimensions = 2, ind.RE = T
 #' @param labels Logical, should node labels be plotted?
 #' @param label.col Colors for vertex labels.
 #' @param label.cex Numeric, character expansion factor for labels.
-#' @param ... Additional arguments to be passed to \code{plot}
+#' @param xlim Optional specification of x limits of plot
+#' @param ylim Optional specifical of y limits of plot
 #'
 #' @details This function uses base R plotting methods. More advanced network plotting methods are available (e.g. through the ggraph package), but this interface provides an easy way to visualize the results of the model quickly.
 #'
@@ -502,12 +503,12 @@ plot.latsoc <- function(object, post.method = "mean",
   }
 
   if(post.method == "median"){
-    z <- apply(object$z,c(2,3),median)
+    z <- apply(object$z,c(2,3),stats::median)
   }
 
   if(post.method == "mds"){
     d <- apply(object$distances, c(2,3), mean)
-    z <- MASS::isoMDS(as.dist(d))$points
+    z <- MASS::isoMDS(stats::as.dist(d))$points
   }
 
   rate <- object$response/object$effort
@@ -517,7 +518,7 @@ plot.latsoc <- function(object, post.method = "mean",
     edge.col <- rate - min(rate[rate > 0],na.rm=T) + 0.001
     edge.col <- edge.col/max(edge.col,na.rm=T)
     edge.col[edge.col < 0] <- 0
-    edge.col <- matrix(rgb(0,0,0,edge.col),nrow=n,ncol=n)
+    edge.col <- matrix(grDevices::rgb(0,0,0,edge.col),nrow=n,ncol=n)
   }
 
   if(is.null(edge.lwd)){
@@ -530,17 +531,17 @@ plot.latsoc <- function(object, post.method = "mean",
   for(i in 1:(n-1)){
     for(j in (i+1):n){
       if(rate[i,j] > 0){
-        lines(x = z[c(i,j),1], y = z[c(i,j),2], lwd = edge.lwd[i,j], col = edge.col[i,j])
+        graphics::lines(x = z[c(i,j),1], y = z[c(i,j),2], lwd = edge.lwd[i,j], col = edge.col[i,j])
       }
     }
   }
   if(labels){
     names <- colnames(object$response)
     if(!is.null(names)){
-      text(x = z[,1], y = z[,2], labels = names, col = label.col, cex = label.cex)
+      graphics::text(x = z[,1], y = z[,2], labels = names, col = label.col, cex = label.cex)
     }
   }
 
-  points(z, pch = 21, cex = vertex.cex, bg = vertex.col)
+  graphics::points(z, pch = 21, cex = vertex.cex, bg = vertex.col)
 
 }

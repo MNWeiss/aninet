@@ -1,7 +1,7 @@
 
 dsp.lmer <- function(model, nperm){
 
-  form <- formula(model) # get the formula from the model
+  form <- lme4::formula.merMod(model) # get the formula from the model
 
   if(grepl("*",as.character(form)[[3]], fixed = T) | grepl(":",as.character(form)[[3]], fixed = T)){
     stop("Model contains interaction effects; DSP cannot test these models")
@@ -12,8 +12,8 @@ dsp.lmer <- function(model, nperm){
 
   colnames(data)[ncol(data)] <- "(Intercept)" # name the intercept column
 
-  fixed <- names(fixef(model)) #get the names of the fixed effects
-  rand <- names(ranef(model)) #names of the random effects
+  fixed <- names(lme4::fixef(model)) #get the names of the fixed effects
+  rand <- names(lme4::ranef(model)) #names of the random effects
 
   X <- data[,fixed,drop=F] # get the fixed predictors as a matrix
   if(any(apply(X,2,class) == "factor")) stop("Fixed predictors must be numeric")
@@ -38,7 +38,7 @@ dsp.lmer <- function(model, nperm){
 
     x <- X[,j] #get the jth predictor
     z <- X[,-j] #get all other predictors
-    resid.x <- residuals(lm(x ~ -1 + z)) #get residuals
+    resid.x <- stats::residuals(stats::lm(x ~ -1 + z)) #get residuals
 
     for(i in 1:nperm){ #for each permutation
 
@@ -51,7 +51,7 @@ dsp.lmer <- function(model, nperm){
 
       if(fixed[j] == "(Intercept)"){ # if testing the intercept
         colnames(data.perm)[colnames(data.perm) == fixed[j]] <- "Intercept" # get a nicer intercept
-        form.j <- update(form, ~ . + Intercept - 1) # update the formula
+        form.j <- stats::update(form, ~ . + Intercept - 1) # update the formula
         fit.perm <- lme4::lmer(form.j, data = data.perm) # fit the permuted model
         t.perm[i,j] <- summary(fit.perm)$coef["Intercept",3] #save t-value
       }else{
@@ -83,8 +83,8 @@ dsp.lmer <- function(model, nperm){
 
 dsp.glmer <- function(model, nperm){
 
-  fam <- family(model)
-  form <- formula(model) # get the formula from the model
+  fam <- lme4::family.merMod(model)
+  form <- lme4::formula.merMod(model) # get the formula from the model
 
   if(grepl("*",as.character(form)[[3]], fixed = T) | grepl(":",as.character(form)[[3]], fixed = T)){
     stop("Model contains interaction effects; DSP cannot test these models")
@@ -95,8 +95,8 @@ dsp.glmer <- function(model, nperm){
 
   colnames(data)[ncol(data)] <- "(Intercept)" # name the intercept column
 
-  fixed <- names(fixef(model)) #get the names of the fixed effects
-  rand <- names(ranef(model)) #names of the random effects
+  fixed <- names(lme4::fixef(model)) #get the names of the fixed effects
+  rand <- names(lme4::ranef(model)) #names of the random effects
 
   X <- data[,fixed,drop=F] # get the fixed predictors as a matrix
   if(any(apply(X,2,class) == "factor")) stop("Fixed predictors must be numeric")
@@ -121,7 +121,7 @@ dsp.glmer <- function(model, nperm){
 
     x <- X[,j] #get the jth predictor
     z <- X[,-j] #get all other predictors
-    resid.x <- residuals(lm(x ~ -1 + z)) #get residuals
+    resid.x <- stats::residuals(stats::lm(x ~ -1 + z)) #get residuals
 
     for(i in 1:nperm){ #for each permutation
 
@@ -134,7 +134,7 @@ dsp.glmer <- function(model, nperm){
 
       if(fixed[j] == "(Intercept)"){ # if testing the intercept
         colnames(data.perm)[colnames(data.perm) == fixed[j]] <- "Intercept" # get a nicer intercept
-        form.j <- update(form, ~ . + Intercept - 1) # update the formula
+        form.j <- stats::update(form, ~ . + Intercept - 1) # update the formula
         fit.perm <- lme4::glmer(form.j, data = data.perm, family = fam) # fit the permuted model
         t.perm[i,j] <- summary(fit.perm)$coef["Intercept",3] #save t-value
       }else{
@@ -166,18 +166,18 @@ dsp.glmer <- function(model, nperm){
 
 dsp.lm <- function(model, nperm){
 
-  form <- formula(model) # get the formula from the model
+  form <- stats::formula(model) # get the formula from the model
 
   if(grepl("*",as.character(form)[[3]], fixed = T) | grepl(":",as.character(form)[[3]], fixed = T)){
     stop("Model contains interaction effects; DSP cannot test these models")
   }
 
-  data <- model.frame(model)
+  data <- stats::model.frame(model)
   data <- cbind(data,rep(1,nrow(data))) # add an intercept column
 
   colnames(data)[ncol(data)] <- "(Intercept)" # name the intercept column
 
-  fixed <- names(coef(model)) #get the names of the fixed effects
+  fixed <- names(stats::coef(model)) #get the names of the fixed effects
 
   X <- data[,fixed,drop=F] # get the fixed predictors as a matrix
   if(any(apply(X,2,class) == "factor")) stop("Fixed predictors must be numeric")
@@ -191,7 +191,7 @@ dsp.lm <- function(model, nperm){
 
     x <- X[,j] #get the jth predictor
     z <- X[,-j] #get all other predictors
-    resid.x <- residuals(lm(x ~ -1 + z)) #get residuals
+    resid.x <- stats::residuals(stats::lm(x ~ -1 + z)) #get residuals
 
     for(i in 1:nperm){ #for each permutation
 
@@ -202,11 +202,11 @@ dsp.lm <- function(model, nperm){
 
       if(fixed[j] == "(Intercept)"){ # if testing the intercept
         colnames(data.perm)[colnames(data.perm) == fixed[j]] <- "Intercept" # get a nicer intercept
-        form.j <- update(form, ~ . + Intercept - 1) # update the formula
-        fit.perm <- lm(form.j, data = data.perm) # fit the permuted model
+        form.j <- stats::update(form, ~ . + Intercept - 1) # update the formula
+        fit.perm <- stats::lm(form.j, data = data.perm) # fit the permuted model
         t.perm[i,j] <- summary(fit.perm)$coef["Intercept",3] #save t-value
       }else{
-        fit.perm <- lm(form, data = data.perm) # fit the permuted model
+        fit.perm <- stats::lm(form, data = data.perm) # fit the permuted model
         t.perm[i,j] <- summary(fit.perm)$coef[j,3] # save the t-value
       }
 
@@ -234,18 +234,18 @@ dsp.lm <- function(model, nperm){
 
 dsp.glm <- function(model, nperm){
 
-  form <- formula(model) # get the formula from the model
+  form <- stats::formula(model) # get the formula from the model
 
   if(grepl("*",as.character(form)[[3]], fixed = T) | grepl(":",as.character(form)[[3]], fixed = T)){
     stop("Model contains interaction effects; DSP cannot test these models")
   }
 
-  data <- model.frame(model)
+  data <- stats::model.frame(model)
   data <- cbind(data,rep(1,nrow(data))) # add an intercept column
 
   colnames(data)[ncol(data)] <- "(Intercept)" # name the intercept column
 
-  fixed <- names(coef(model)) #get the names of the fixed effects
+  fixed <- names(stats::coef(model)) #get the names of the fixed effects
 
   X <- data[,fixed,drop=F] # get the fixed predictors as a matrix
   if(any(apply(X,2,class) == "factor")) stop("Fixed predictors must be numeric")
@@ -259,7 +259,7 @@ dsp.glm <- function(model, nperm){
 
     x <- X[,j] #get the jth predictor
     z <- X[,-j] #get all other predictors
-    resid.x <- residuals(lm(x ~ -1 + z)) #get residuals
+    resid.x <- stats::residuals(stats::lm(x ~ -1 + z)) #get residuals
 
     for(i in 1:nperm){ #for each permutation
 
@@ -270,11 +270,11 @@ dsp.glm <- function(model, nperm){
 
       if(fixed[j] == "(Intercept)"){ # if testing the intercept
         colnames(data.perm)[colnames(data.perm) == fixed[j]] <- "Intercept" # get a nicer intercept
-        form.j <- update(form, ~ . + Intercept - 1) # update the formula
-        fit.perm <- lm(form.j, data = data.perm) # fit the permuted model
+        form.j <- stats::update(form, ~ . + Intercept - 1) # update the formula
+        fit.perm <- stats::lm(form.j, data = data.perm) # fit the permuted model
         t.perm[i,j] <- summary(fit.perm)$coef["Intercept",3] #save t-value
       }else{
-        fit.perm <- lm(form, data = data.perm) # fit the permuted model
+        fit.perm <- stats::lm(form, data = data.perm) # fit the permuted model
         t.perm[i,j] <- summary(fit.perm)$coef[j,3] # save the t-value
       }
 

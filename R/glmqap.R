@@ -260,9 +260,9 @@ glmqap <- function(formula, family = "gaussian", weights=NULL, offset=NULL, nper
     z = c(NA,z.val),
     p = c(NA,pval),
     permuted_z = z.perm,
-    aic = AIC(mod.orig),
-    bic = BIC(mod.orig),
-    loglik = as.numeric(logLik(mod.orig)),
+    aic = stats::AIC(mod.orig),
+    bic = stats::BIC(mod.orig),
+    loglik = as.numeric(stats::logLik(mod.orig)),
     weights = deparse(substitute(weights)),
     offset = deparse(substitute(offset))
   )

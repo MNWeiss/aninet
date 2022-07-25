@@ -40,7 +40,9 @@
 
 \item{label.cex}{Numeric, character expansion factor for labels.}
 
-\item{...}{Additional arguments to be passed to \code{plot}}
+\item{xlim}{Optional specification of x limits of plot}
+
+\item{ylim}{Optional specifical of y limits of plot}
 }
 \description{
 Plots the fitted network object with node positions determined by latent space modelling. 1 and 2 dimensional fits can be plotted directly, while > 3 dimensional fits use multidimensional scaling to project distances into 2 dimensions.
