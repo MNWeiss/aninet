@@ -84,7 +84,7 @@ gbi_MCMC <- function(data,
     cat("\n")
 
     for(i in 1:(burnin*thin)){
-      setTxtProgressBar(pb,i)
+      utils::setTxtProgressBar(pb,i)
       cols <- sample(N,2)
       rows <- sample(G,2)
       trial_matrix <- gbi.p[rows,cols]
@@ -107,7 +107,7 @@ gbi_MCMC <- function(data,
     pb <- utils::txtProgressBar(min = 0, max = samples, style=3)
 
     for(i in 1:samples){
-      setTxtProgressBar(pb,i)
+      utils::setTxtProgressBar(pb,i)
       for(j in 1:thin){
         cols <- sample(N,2)
         rows <- sample(G,2)
