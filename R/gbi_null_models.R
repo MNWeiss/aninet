@@ -199,7 +199,7 @@ extend.gbi_MCMC <- function(x,samples,...){
     cat(paste("Sampling for",samples,"iterations",sep=" "))
     cat("\n")
 
-    pb <- utils::txtProgressBar(min = 0, max = burnin*thin,style=3)
+    pb <- utils::txtProgressBar(min = 0, max = samples, style=3)
 
     for(i in 1:samples){
       utils::setTxtProgressBar(pb,i)
