@@ -25,5 +25,5 @@ association_hclust <- function(network, method = "average"){
   })
   best_clusters = stats::cutree(clustering, k = which.max(modularity))
   height = 1 - cuts
-  list(modularity = maximum_modularity, CCC = ccc, membership = best_clusters, tree = clustering, cuts = data.frame(Groups = 1:ncol(m), Mod = modularity), merge = clustering$merge)
+  list(modularity = max(modularity), CCC = ccc, membership = best_clusters, tree = clustering, cuts = data.frame(Groups = 1:ncol(m), Mod = modularity), merge = clustering$merge)
 }
