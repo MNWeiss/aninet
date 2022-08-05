@@ -14,16 +14,18 @@
 
 association_hclust <- function(network, method = "average"){
   m <- network
-  graph = igraph::graph.adjacency(m, mode = "undirected", weighted = T)
-  m.dist = stats::as.dist(1 - m)
-  clustering = stats::hclust(m.dist, method = method)
-  cp = stats::cophenetic(clustering)
-  ccc = stats::cor(cp, m.dist)
-  membership <- stats::cutree(clustering, k = 1:ncol(m))
-  modularity <- apply(membership, 1, function(z){
-    igraph::modularity(graph, z, weights = igraph::E(graph)$weight)
+  graph <- igraph::graph.adjacency(m, mode = "undirected", weighted = T)
+  m.dist <- stats::as.dist(1 - m)
+  clustering <- stats::hclust(m.dist, method = method)
+  clustering$height <- round(clustering$height, 6)
+  cp <- stats::cophenetic(clustering)
+  ccc <- stats::cor(cp, m.dist)
+  membership <- cutree(clustering, k = 1:ncol(m))
+  modularity <- apply(membership, 2, function(z){
+    igraph::modularity(graph, membership = z, weights = igraph::E(graph)$weight)
   })
-  best_clusters = stats::cutree(clustering, k = which.max(modularity))
-  height = 1 - cuts
-  list(modularity = max(modularity), CCC = ccc, membership = best_clusters, tree = clustering, cuts = data.frame(Groups = 1:ncol(m), Mod = modularity), merge = clustering$merge)
+  maximum_modularity <- max(modularity)
+  best_clusters <- stats::cutree(clustering, k = which.max(modularity))
+  height <- 1 - cuts
+  list(modularity = maximum_modularity, CCC = ccc, membership = best_clusters, tree = clustering, cuts = data.frame(Groups = 1:ncol(m), Mod = modularity), merge = clustering$merge)
 }
