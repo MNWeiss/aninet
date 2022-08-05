@@ -17,18 +17,13 @@ association_hclust <- function(network, method = "average"){
   graph = igraph::graph.adjacency(m, mode = "undirected", weighted = T)
   m.dist = stats::as.dist(1 - m)
   clustering = stats::hclust(m.dist, method = method)
-  clustering$height <- round(clustering$height, 6)
   cp = stats::cophenetic(clustering)
   ccc = stats::cor(cp, m.dist)
-  cuts = clustering$height
-  cuts = unique(cuts)
-  modularity = rep(NA, length(cuts))
-  for(i in 1:length(cuts)){
-    membership = stats::cutree(clustering, h = cuts[i])
-    modularity[i] = igraph::modularity(graph, membership = membership, weights = E(graph)$weight)
-  }
-  maximum_modularity = max(modularity)
-  best_clusters = stats::cutree(clustering, h = cuts[which(modularity == maximum_modularity)])
+  membership <- stats::cutree(clustering, k = 1:ncol(m))
+  modularity <- apply(membership, 1, function(z){
+    igraph::modularity(graph, z, weights = igraph::E(graph)$weight)
+  })
+  best_clusters = stats::cutree(clustering, k = which.max(modularity))
   height = 1 - cuts
-  list(modularity = maximum_modularity, CCC = ccc, membership = best_clusters, tree = clustering, cuts = data.frame(AI = height, Mod = modularity), merge = clustering$merge)
+  list(modularity = maximum_modularity, CCC = ccc, membership = best_clusters, tree = clustering, cuts = data.frame(Groups = 1:ncol(m), Mod = modularity), merge = clustering$merge)
 }
