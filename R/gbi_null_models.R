@@ -217,7 +217,7 @@ extend.gbi_MCMC <- function(x,samples,...){
 
         }
       }
-      res_matrix[i,] <- FUN(gbi.p,...)
+      res_matrix[i,] <- FUN(gbi.p, ...)
     }
     close(pb)
     cat("\n")

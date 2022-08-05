@@ -17,6 +17,7 @@ association_hclust <- function(network, method = "average"){
   graph = igraph::graph.adjacency(m, mode = "undirected", weighted = T)
   m.dist = stats::as.dist(1 - m)
   clustering = stats::hclust(m.dist, method = method)
+  clustering$height <- round(clustering$height, 6)
   cp = stats::cophenetic(clustering)
   ccc = stats::cor(cp, m.dist)
   cuts = clustering$height
