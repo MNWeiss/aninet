@@ -63,6 +63,13 @@ gbi_MCMC <- function(data,
   }
   if(!is.function(FUN)) stop("FUN must be a function")
 
+  min_iters <- gbi_MCMC_iters(data, target_samples=1000, quiet=TRUE)
+  if (samples * thin < min_iters) {
+    message("Warning: Insufficient iterations for effective sample size of 1000. Minimum number of iterations required is ",
+            formatC(min_iters, format="e", digits=1), ". You are only using ", samples, " x ", thin, " = ",
+            formatC(samples * thin, format="e", digits=1), " iterations. Null samples will not be reliable.")
+  }
+
   observed <- FUN(data,...)
 
   chain_res <- list()
@@ -328,4 +335,25 @@ summary.gbi_null <- function(x){
   print(twotail_summary)
   cat("\n")
 
+}
+
+#' Minimum number of MCMC iterations needed for Group-by-Individuals randomisations.
+#'
+#' Uses an analytically-derived equation to estimate the minimum number of MCMC iterations required to generate a target number of effective samples from the null.
+#' This function should only be used as a rough guide before running computationally intensive randomisations with \code{gbi_MCMC}. The true number of MCMC iterations may need to be much higher, so MCMC diagnostics should always be used to verify that samples are reliable.
+#'
+#' @param gbi A group by individual matrix
+#' @param target_samples Target number of effective samples
+#'
+#' @return The minimum number of MCMC iterations required to generate \code{target_samples} effective samples.
+#' @export
+gbi_MCMC_iters <- function(gbi, target_samples=1000, quiet=FALSE) {
+  p = mean(gbi) # Density
+  m = length(gbi) # Number of elements
+
+  min_samples <- ceiling((m * target_samples)/(12 * p * (1 - p)))
+  if (!quiet) {
+    message("Note: The minimum number of iterations reported here may be far lower than the actual number of samples needed. This function is intended to be used as an approximate guide only.")
+  }
+  return(min_samples)
 }
