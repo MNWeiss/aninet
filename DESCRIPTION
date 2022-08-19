@@ -23,6 +23,9 @@ Authors@R:
            family = "Weiss",
            role = c("aut", "cre"),
            email = "m.weiss@exeter.ac.uk")
+    person(given = "Jordan",
+            family = "Hart",
+            role = "aut")
 Description: An implementation of several statistical models for the analysis of animal social network data.
     Included is an implementation of generalized affiliation indices and estimation of social differentiation. Also includes the generalized linear model quadratic assignment procedure.
     Several convenience functions for manipulating social network data are also included.
