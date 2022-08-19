@@ -64,7 +64,7 @@ gbi_MCMC <- function(data,
   if(!is.function(FUN)) stop("FUN must be a function")
 
   min_iters <- gbi_MCMC_iters(data, target_samples=1000, quiet=TRUE)
-  if (samples * thin < min_iters) {
+  if (samples * thin * chains < min_iters) {
     message("Warning: Insufficient iterations for effective sample size of 1000. Minimum number of iterations required is ",
             formatC(min_iters, format="e", digits=1), ". You are only using ", samples, " x ", thin, " = ",
             formatC(samples * thin, format="e", digits=1), " iterations. Null samples will not be reliable.")
