@@ -1,7 +1,7 @@
 Package: aninet
 Title: Statistical Models for Animal Social Networks
-Version: 0.0.1.0
-Date: 2020-03-23
+Version: 0.1.0.0
+Date: 2022-08-19
 Imports:
   VGAM,
   betareg,
