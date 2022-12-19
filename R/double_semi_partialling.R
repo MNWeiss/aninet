@@ -38,7 +38,7 @@ dsp.lmer <- function(model, nperm){
 
     x <- X[,j] #get the jth predictor
     z <- X[,-j] #get all other predictors
-    resid.x <- stats::residuals(stats::lm(x ~ -1 + z)) #get residuals
+    resid.x <- stats::residuals(stats::lm(x ~ -1 + z, na.action = na.exclude)) #get residuals
 
     for(i in 1:nperm){ #for each permutation
 
@@ -121,7 +121,7 @@ dsp.glmer <- function(model, nperm){
 
     x <- X[,j] #get the jth predictor
     z <- X[,-j] #get all other predictors
-    resid.x <- stats::residuals(stats::lm(x ~ -1 + z)) #get residuals
+    resid.x <- stats::residuals(stats::lm(x ~ -1 + z, na.action = na.exclude)) #get residuals
 
     for(i in 1:nperm){ #for each permutation
 
@@ -191,7 +191,7 @@ dsp.lm <- function(model, nperm){
 
     x <- X[,j] #get the jth predictor
     z <- X[,-j] #get all other predictors
-    resid.x <- stats::residuals(stats::lm(x ~ -1 + z)) #get residuals
+    resid.x <- stats::residuals(stats::lm(x ~ -1 + z, na.action = na.exclude)) #get residuals
 
     for(i in 1:nperm){ #for each permutation
 
@@ -259,7 +259,7 @@ dsp.glm <- function(model, nperm){
 
     x <- X[,j] #get the jth predictor
     z <- X[,-j] #get all other predictors
-    resid.x <- stats::residuals(stats::lm(x ~ -1 + z)) #get residuals
+    resid.x <- stats::residuals(stats::lm(x ~ -1 + z, na.action = na.exclude)) #get residuals
 
     for(i in 1:nperm){ #for each permutation
 

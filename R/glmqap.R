@@ -133,7 +133,7 @@ glmqap <- function(formula, family = "gaussian", weights=NULL, offset=NULL, nper
       x <- x[lower.tri(x)] #vectorize
       z <- do.call(cbind,lapply(z,function(p)p[lower.tri(p)])) #matrix
 
-      eps <- stats::residuals(stats::lm(x ~ z)) #residuals of x given z
+      eps <- stats::residuals(stats::lm(x ~ z, na.action = na.exclude)) #residuals of x given z
 
       eps.mat <- response #turn it into a matrix
       eps.mat[lower.tri(eps.mat)] <- eps
