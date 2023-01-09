@@ -35,6 +35,8 @@ and assesses the significance of the estimated coefficients using a quadratic as
 Multiple types of permutation are provided, with the default being the double semi-partialling method.
 }
 \details{
+NOTE: This function is soft-deprecated as of version 0.2. It has become increasingly clear that these permutation procedures are less informative than other analytical methods, particularly methods using multi-membership random effects. Unless you have a very large dataset that makes fitting a Bayesian model impractical, it is strongly recommended to use \link[aninet]{dyadic_brm} instead.
+
 The multiple regression quadratic assignment procedure (MRQAP) is the canonical method for dyadic regression in social networks. However, this method comes with two major assumptions: The residuals of the response are approximately normal (although the DSP method is fairly robust to violations of this assumption), and the social relationships of all dyads are measured with the same precision.
 These assumptions are almost never met in animal social network analyses. Replacing the ordinary least-squares fit used in MRQAP with a GLM allows us to address both of these issues in a theoretically sound way, by specifying error families, offsets, and weights.
 
@@ -42,7 +44,7 @@ The \code{weights} argument allows for specification of sampling weights per dya
 
 The \code{offset} argument gives a matrix with a known coefficient of 1 in the model. This will primarily be useful for interaction rates. Here, we can use a count model without an upper bound (by setting \code{family} to be one of \code{"poisson"}, \code{"quasipoisson"}, or \code{"negbin"}), and include the logarithm of dyadic sampling effort as an offset. This means we're using sampling effort as an exposure term, and therefore modelling interaction rates rather than just counts.
 
-In most cases, the model is fit using \code{glm()}. However, if \code{family = "betar"}, the \code{betareg::betareg()} function is used, and if \code{family = "negbin"}, the \code{MASS::glm.nb()} function is used.
+In most cases, the model is fit using \link[stats]{glm}. However, if \code{family = "betar"}, the \link[betareg]{betareg} function from the \code{betareg} package is used, and if \code{family = "negbin"}, the \link[MASS]{glm.nb} function from the \code{MASS} package is used.
 
 Beta models will be most useful for association index type data without an integer numerator/denominator (such as measurements of portion time together from biologgers/video). Dyadic sampling effort can still be specified as the weights, but take care.
 In \code{betareg()}, weights are treated as sampling, rather than proportional, weights. This means that the function assumes your true sample size is \code{sum(weights)}. While this won't effect your estimate or significance (because we use permutations), it will give

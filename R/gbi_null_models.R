@@ -344,6 +344,7 @@ summary.gbi_null <- function(x){
 #'
 #' @param gbi A group by individual matrix
 #' @param target_samples Target number of effective samples
+#' @param quiet Logical, should messages produced by the function be suppressed?
 #'
 #' @return The minimum number of MCMC iterations required to generate \code{target_samples} effective samples.
 #' @export

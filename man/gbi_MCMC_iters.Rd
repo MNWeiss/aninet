@@ -10,6 +10,8 @@ gbi_MCMC_iters(gbi, target_samples = 1000, quiet = FALSE)
 \item{gbi}{A group by individual matrix}
 
 \item{target_samples}{Target number of effective samples}
+
+\item{quiet}{Logical, should messages produced by the function be suppressed?}
 }
 \value{
 The minimum number of MCMC iterations required to generate \code{target_samples} effective samples.

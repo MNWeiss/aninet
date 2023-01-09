@@ -18,10 +18,12 @@ A table with the model estimated coefficients, standard errors, and pivotal stat
 Perform double-semi-partialling permutations to test the fixed effects of (generalized) linear (mixed effect) models
 }
 \details{
+NOTE: This function is soft deprecated as of version 0.2. It has become increasingly clear that there are very few (maybe no) situations in which this permutation procedure is relevant or produces better information than analytical p-values or Bayesian estimates of evidence.
+
 Double-semi-partialling is most commonly used as a permutation procedure for matrix correlations. The basic principles underlying this test, however, are generally applicable to regression models. This is particularly useful for permutation tests with multiple continuous predictors, where simply permuting responses within levels of one or more predictors is not possible.
 For a given fixed predictor X, we regress X on the remaining fixed predictors Z to arrive at residuals for X. These residuals are then permuted to generate a null distribution. We repeat this for each fixed predictor.
 For models fit with random effects, this function permutes these predictor residuals within each unique combination of random effects. If the number of unique random effect combinations present is equal to the number of observations, the function returns an error, as no permutation is possible.
 A drawback of DSP is it does not provide a way to test interaction effects in a principled manner; trying to pass models with interactions to the function will return an error.
 Note that all categorical variables should be dummy coded into a set of binary variables prior to model fitting.
-The function currently supports \code{lm} and \code{glm} objects, as well as models fit using \code{lmer} and \code{glmer} in the \code{lme4} package.
+The function currently supports objects fit using \link[stats]{lm}, \link[stats]{glm}, \link[lme4]{lmer}, and \link[lme4]{glmer}.
 }
