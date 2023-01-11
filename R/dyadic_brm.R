@@ -125,13 +125,17 @@ dyadic_brm <- function(formula, sampling_effort = NULL, family = "binomial", ...
   formula <- update(formula, .~. + (1|mm(id1,id2)))
 
   if(!is.null(sampling_effort)){
-    if(fam_name %in% c("poisson","negbinomial","zero_inflated_poisson", "zero_inflated_negbinomial","hurdle_poisson", "hurdle_negbinomial")){
+    if(fam_name %in% c("poisson","negbinomial")){
       formula <- update(formula, .|rate(sampling_effort) ~ .)
     }else{
       if(fam_name %in% c("binomial", "beta_binomial", "zero_inflated_binomial", "zero_inflated_beta_binomial")){
         formula <- update(formula, .|trials(sampling_effort) ~ .)
       }else{
-        formula <- update(formula, .|weights(sampling_effort, scale = TRUE) ~ .)
+        if(fam_name %in% c("zero_inflated_poisson", "zero_inflated_negbinomial","hurdle_poisson", "hurdle_negbinomial")){
+          formula <- update(formula, . ~ . + offset(log(sampling_effort)))
+        }else{
+          formula <- update(formula, .|weights(sampling_effort, scale = TRUE) ~ .)
+        }
       }
     }
   }
